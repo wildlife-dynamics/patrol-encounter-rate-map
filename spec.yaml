@@ -1,14 +1,45 @@
 id: patrol_encounter_rate_map
 
+metadata:
+  name: Patrol Encounter Rate Map Workflow
+  description: >-
+    See where your patrols encounter events most often by combining patrol
+    effort and patrol events from EarthRanger into a grid-based encounter
+    rate heatmap.
+  maintainers:
+    - name: Yun Wu
+      email: yun@wildlifedynamics.com
+      role: owner
+    - name: Alex Morling
+      email: alexm@earthranger.com
+      role: reviewer
+  outputs:
+    - name: Encounter Rate Map
+      type: map
+      description: >-
+        An interactive dashboard map where each grid cell is colored by its
+        encounter rate, with cells that received too little patrol effort
+        masked in grey.
+      indicators:
+        - name: Encounter Rate
+        - name: Events
+        - name: Patrol Effort (km)
+  license: BSD-3-Clause
+  repository: https://github.com/wildlife-dynamics/patrol-encounter-rate-map
+  documentation: https://github.com/wildlife-dynamics/patrol-encounter-rate-map#readme
+  readme: README.md
+  thumbnail: resources/thumbnail.png
+  keywords: [patrol, encounter, rate, map, earthranger]
+
 requirements:
   # >=2.18.4 required: ext-custom rc25 imports the generic aggregation models
   # (CountAggregation/SumOfColumnAggregation + make_aggregation_json_schema_extra)
   # from ecoscope.platform.tasks.analysis._patrol_summary, added in 2.18.4.
   - name: "ecoscope-platform"
-    version: ">=2.18.4, <2.19.0"
+    version: ">=2.23.0, <2.24.0"
     channel: "https://repo.prefix.dev/ecoscope-workflows/"
   - name: ecoscope-workflows-ext-custom
-    version: "0.1.0rc25"
+    version: "0.1.1"
     channel: "https://repo.prefix.dev/ecoscope-workflows-custom/"
   # ecoscope-platform >=2.11.18 requires pydeck ==0.9.2, but the custom channel
   # ships a forked pydeck 0.0.2 that wins under strict channel priority; pin
@@ -288,6 +319,7 @@ workflow:
           drop_columns: ["id"]
           retain_columns: []
           raise_if_not_found: false
+          duplicate_strategy: "suffix"
 
       - name: Add temporal index to Patrol Trajectories
         id: traj_add_temporal_index
@@ -309,6 +341,7 @@ workflow:
           raise_if_not_found: false
           rename_columns:
             patrol_type__value: "patrol_type"
+          duplicate_strategy: "suffix"
 
       - name: Add spatial index to Patrol Trajectories
         id: traj_add_spatial_index
@@ -478,6 +511,7 @@ workflow:
             - "id"
             - ${{ workflow.agg_column.return }}
           raise_if_not_found: false
+          duplicate_strategy: "suffix"
 
       # Invisible: merge the aggregate values onto each split events group by
       # event id (left join; count mode is a no-op merge on id alone).
@@ -661,6 +695,7 @@ workflow:
             event_count: "Events"
             event_sum: ${{ workflow.rate_numerator_label.return }}
             patrol_effort_km: "Patrol Effort (km)"
+          duplicate_strategy: "suffix"
           raise_if_not_found: false
         mapvalues:
           argnames: df
