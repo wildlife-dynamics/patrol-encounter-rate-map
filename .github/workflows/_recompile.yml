@@ -47,6 +47,7 @@ jobs:
             --spec spec.yaml \
             --pkg-name-prefix=ecoscope-workflows \
             --results-env-var=ECOSCOPE_WORKFLOWS_RESULTS \
+            --variant=gcp \
             --no-progress \
             --clobber --update
 
