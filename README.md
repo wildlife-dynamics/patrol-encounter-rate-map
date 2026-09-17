@@ -89,6 +89,8 @@ Choose which patrols and events to include in the analysis.
   - Default: `done`
   - Leave empty to include patrols of all statuses
   - Note: Use the exact "value" from EarthRanger, not the display name — check the admin pages listed in Prerequisites if unsure
+- **Event State** (optional): Which event states to include (`new`, `active`, `resolved`, `review`)
+  - Note: Leave empty to include events of all states
 
 #### 5. Filter Data
 Optional spatial and quality filters applied to both patrol observations and events.

@@ -634,6 +634,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
             drop_columns=["id"],
             retain_columns=[],
             raise_if_not_found=False,
+            duplicate_strategy="suffix",
             **(params.get("customize_columns") or {}),
         )
         .call()
@@ -682,6 +683,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
             retain_columns=[],
             raise_if_not_found=False,
             rename_columns={"patrol_type__value": "patrol_type"},
+            duplicate_strategy="suffix",
             **(params.get("traj_rename_grouper_cols") or {}),
         )
         .call()
@@ -1026,6 +1028,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
             drop_columns=[],
             retain_columns=["id", agg_column],
             raise_if_not_found=False,
+            duplicate_strategy="suffix",
             **(params.get("details_agg_subset") or {}),
         )
         .call()
@@ -1346,6 +1349,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
                 "event_sum": rate_numerator_label,
                 "patrol_effort_km": "Patrol Effort (km)",
             },
+            duplicate_strategy="suffix",
             raise_if_not_found=False,
             **(params.get("rename_rate_col") or {}),
         )
