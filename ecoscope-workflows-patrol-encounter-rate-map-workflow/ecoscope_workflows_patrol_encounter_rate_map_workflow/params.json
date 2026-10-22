@@ -92,17 +92,58 @@
             "done"
           ],
           "items": {
-            "enum": [
-              "active",
-              "overdue",
-              "done",
-              "cancelled"
-            ],
-            "type": "string"
+            "type": "string",
+            "oneOf": [
+              {
+                "const": "active",
+                "title": "Active"
+              },
+              {
+                "const": "overdue",
+                "title": "Overdue"
+              },
+              {
+                "const": "done",
+                "title": "Done"
+              },
+              {
+                "const": "cancelled",
+                "title": "Cancelled"
+              }
+            ]
           },
           "title": "Patrol Status",
           "type": "array",
           "description": "Choose to analyze patrols with a certain status. If left empty, patrols of all status will be analyzed",
+          "uniqueItems": true,
+          "ecoscope:advanced": true
+        },
+        "event_states": {
+          "default": null,
+          "items": {
+            "type": "string",
+            "oneOf": [
+              {
+                "const": "new",
+                "title": "New"
+              },
+              {
+                "const": "active",
+                "title": "Active"
+              },
+              {
+                "const": "resolved",
+                "title": "Resolved"
+              },
+              {
+                "const": "review",
+                "title": "Review"
+              }
+            ]
+          },
+          "title": "Event State",
+          "type": "array",
+          "description": "Choose to analyze events with a certain state. If left empty, events of all states will be analyzed",
           "uniqueItems": true,
           "ecoscope:advanced": true
         }
@@ -747,7 +788,8 @@
       "ui:order": [
         "patrol_types",
         "event_types",
-        "status"
+        "status",
+        "event_states"
       ]
     },
     "patrol_filters": {
