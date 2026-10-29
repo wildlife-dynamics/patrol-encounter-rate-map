@@ -43,7 +43,7 @@ requirements:
     version: ">=2.27.1, <2.28.0"
     channel: "https://repo.prefix.dev/ecoscope-workflows/"
   - name: ecoscope-workflows-ext-custom
-    version: "0.1.1"
+    version: "0.1.5"
     channel: "https://repo.prefix.dev/ecoscope-workflows-custom/"
   # ecoscope-platform >=2.11.18 requires pydeck ==0.9.2, but the custom channel
   # ships a forked pydeck 0.0.2 that wins under strict channel priority; pin
