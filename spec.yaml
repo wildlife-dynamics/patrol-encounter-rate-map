@@ -32,11 +32,15 @@ metadata:
   keywords: [patrol, encounter, rate, map, earthranger]
 
 requirements:
-  # >=2.18.4 required: ext-custom rc25 imports the generic aggregation models
-  # (CountAggregation/SumOfColumnAggregation + make_aggregation_json_schema_extra)
-  # from ecoscope.platform.tasks.analysis._patrol_summary, added in 2.18.4.
+  # >=2.27.1: first release with the patrol leg tasks (ecoscope PR #859):
+  # get_patrol_segments_from_patrols_df_and_combined_params, the name
+  # resolvers (add_patrol_team_names, add_patrol_roster_names,
+  # add_patrol_type_display_names), add_leg_names_to_tracks,
+  # add_patrol_type_display_from_legs and explode_for_groupers. Also carries
+  # the aggregation models ext-custom imports from
+  # ecoscope.platform.tasks.analysis._patrol_summary (>=2.18.4).
   - name: "ecoscope-platform"
-    version: ">=2.23.0, <2.24.0"
+    version: ">=2.27.1, <2.28.0"
     channel: "https://repo.prefix.dev/ecoscope-workflows/"
   - name: ecoscope-workflows-ext-custom
     version: "0.1.1"
@@ -100,6 +104,14 @@ rjsf-overrides:
               title: "Patrol Type"
             - const: "patrol_subject"
               title: "Patrol Subject"
+            # Patrol leg schema (patrol_schemas flag): resolved on the leg
+            # frame and copied to tracks and events; "None" where absent.
+            - const: "patrol_team_name"
+              title: "Team"
+            - const: "patrol_member_names"
+              title: "Member"
+            - const: "patrol_asset_names"
+              title: "Asset"
   uiSchema:
     Filter Data.patrol_filters.filter_point_coords.items.ui:options.label: false
     Encounter Rate Map.map_options.base_maps.items.ui:options.label: false
@@ -179,6 +191,18 @@ workflow:
           events_gdf: ${{ workflow.patrol_events.return }}
           append_category_names: "duplicates"
 
+  # ── Patrol legs (one row per patrol segment) ──
+  # Name source only: team / member / asset names and the patrol type display
+  # name are resolved once here and copied onto tracks and events by
+  # patrol_segment_id / patrol type slug. Nothing is indexed, split or
+  # summarized on this frame; the grid maths is unchanged.
+  - name: Get Patrol Legs
+    id: patrol_legs
+    task: get_patrol_segments_from_patrols_df_and_combined_params
+    partial:
+      patrols_df: ${{ workflow.prefetch_patrols.return }}
+      combined_params: ${{ workflow.er_patrol_and_events_params.return }}
+
   - name: Extract Timezone Selection
     id: get_timezone
     task: get_timezone_from_time_range
@@ -200,6 +224,39 @@ workflow:
       df: ${{ workflow.event_type_display_names.return }}
       timezone: ${{ workflow.get_timezone.return }}
       columns: ["time"]
+
+  - name: Convert Patrol Legs to Timezone
+    id: convert_legs_tz
+    task: convert_values_to_timezone
+    partial:
+      df: ${{ workflow.patrol_legs.return }}
+      timezone: ${{ workflow.get_timezone.return }}
+      columns: ["segment_start", "segment_end"]
+
+  # mock-io keys fixtures per task function, so each name task runs once, on
+  # the leg frame, and add_leg_names_to_tracks copies the result around.
+  - name: Add Team Names to Patrol Legs
+    id: legs_team_names
+    task: add_patrol_team_names
+    partial:
+      df: ${{ workflow.convert_legs_tz.return }}
+      client: ${{ workflow.er_client_name.return }}
+
+  - name: Add Member and Asset Names to Patrol Legs
+    id: legs_roster_names
+    task: add_patrol_roster_names
+    partial:
+      df: ${{ workflow.legs_team_names.return }}
+      client: ${{ workflow.er_client_name.return }}
+
+  # patrol_type becomes the ER display name (issue #14: the view selector
+  # showed the slug); the slug stays in patrol_type__value.
+  - name: Add Patrol Type Display Names to Patrol Legs
+    id: legs_type_display
+    task: add_patrol_type_display_names
+    partial:
+      df: ${{ workflow.legs_roster_names.return }}
+      client: ${{ workflow.er_client_name.return }}
 
   # ── Filter Data (combined card, patrol-effort-table pattern) ──
   - title: Filter Data
@@ -321,33 +378,40 @@ workflow:
           raise_if_not_found: false
           duplicate_strategy: "suffix"
 
+      # Team / Member / Asset names from the leg frame, by patrol_segment_id
+      # ("None" where the site has no patrol_schemas flag).
+      - name: Add Leg Names to Patrol Trajectories
+        id: traj_leg_names
+        task: add_leg_names_to_tracks
+        partial:
+          df: ${{ workflow.customize_columns.return }}
+          legs: ${{ workflow.legs_type_display.return }}
+
+      # Tracks carry the type UUID in patrol_type and the slug in
+      # patrol_type__value; this writes the display name into patrol_type
+      # (replaces the former patrol_type__value -> patrol_type rename).
+      - name: Add Patrol Type Display Names to Patrol Trajectories
+        id: traj_type_display
+        task: add_patrol_type_display_from_legs
+        partial:
+          df: ${{ workflow.traj_leg_names.return }}
+          legs: ${{ workflow.legs_type_display.return }}
+
       - name: Add temporal index to Patrol Trajectories
         id: traj_add_temporal_index
         task: add_temporal_index
         partial:
-          df: ${{ workflow.customize_columns.return }}
+          df: ${{ workflow.traj_type_display.return }}
           time_col: "segment_start"
           groupers: ${{ workflow.resolved_groupers.return }}
           cast_to_datetime: true
           format: "mixed"
 
-      - name: Rename value grouper columns for Trajectories
-        id: traj_rename_grouper_cols
-        task: map_columns
-        partial:
-          df: ${{ workflow.traj_add_temporal_index.return }}
-          drop_columns: ["patrol_type"]
-          retain_columns: []
-          raise_if_not_found: false
-          rename_columns:
-            patrol_type__value: "patrol_type"
-          duplicate_strategy: "suffix"
-
       - name: Add spatial index to Patrol Trajectories
         id: traj_add_spatial_index
         task: add_spatial_index
         partial:
-          gdf: ${{ workflow.traj_rename_grouper_cols.return }}
+          gdf: ${{ workflow.traj_add_temporal_index.return }}
           groupers: ${{ workflow.resolved_groupers.return }}
 
   # ── Process Patrol Events ──
@@ -405,12 +469,28 @@ workflow:
           prefix: event_details__
           duplicate_strategy: suffix
 
+      # Events carry patrol_segment_id and the patrol type slug from the
+      # unpack: same leg join and display-name copy as the tracks.
+      - name: Add Leg Names to Patrol Events
+        id: pe_leg_names
+        task: add_leg_names_to_tracks
+        partial:
+          df: ${{ workflow.drop_extra_prefix_events.return }}
+          legs: ${{ workflow.legs_type_display.return }}
+
+      - name: Add Patrol Type Display Names to Patrol Events
+        id: pe_type_display
+        task: add_patrol_type_display_from_legs
+        partial:
+          df: ${{ workflow.pe_leg_names.return }}
+          legs: ${{ workflow.legs_type_display.return }}
+
       # Coordinate/bounding-box filter shared from the Filter Data card.
       - name: Apply Coordinate Filter to Patrol Events
         id: filter_patrol_events
         task: apply_reloc_coord_filter
         partial:
-          df: ${{ workflow.drop_extra_prefix_events.return }}
+          df: ${{ workflow.pe_type_display.return }}
           roi_gdf: null
           roi_name: null
           reset_index: true
@@ -435,32 +515,51 @@ workflow:
           groupers: ${{ workflow.resolved_groupers.return }}
 
   # ── Cast, Split, Persist ──
+  # The two list columns (patrol_member_names, patrol_asset_names) are never
+  # cast: explode_for_groupers needs real lists.
   - name: Cast Patrol Trajectory Columns
     id: traj_cols_to_string
     task: convert_column_values_to_string
     partial:
       df: ${{ workflow.traj_add_spatial_index.return }}
-      columns: ["patrol_serial_number", "patrol_type"]
+      columns: ["patrol_serial_number", "patrol_type", "patrol_team_name"]
 
   - name: Cast Patrol Events Columns
     id: pe_cols_to_string
     task: convert_column_values_to_string
     partial:
       df: ${{ workflow.pe_add_spatial_index.return }}
-      columns: ["patrol_serial_number", "patrol_type"]
+      columns: ["patrol_serial_number", "patrol_type", "patrol_team_name"]
+
+  # A Member or Asset grouper explodes the list column so each name gets its
+  # own view (a shared track counts in each member's map); no-op otherwise.
+  # The meshgrid footprint below keeps the unexploded trajectory frame.
+  - name: Explode Patrol Trajectories for Groupers
+    id: traj_exploded
+    task: explode_for_groupers
+    partial:
+      df: ${{ workflow.traj_cols_to_string.return }}
+      groupers: ${{ workflow.resolved_groupers.return }}
+
+  - name: Explode Patrol Events for Groupers
+    id: pe_exploded
+    task: explode_for_groupers
+    partial:
+      df: ${{ workflow.pe_cols_to_string.return }}
+      groupers: ${{ workflow.resolved_groupers.return }}
 
   - name: Split Patrol Trajectories by Group
     id: split_traj_groups
     task: split_groups
     partial:
-      df: ${{ workflow.traj_cols_to_string.return }}
+      df: ${{ workflow.traj_exploded.return }}
       groupers: ${{ workflow.resolved_groupers.return }}
 
   - name: Split Patrol Events by Group
     id: split_pe_groups
     task: split_groups
     partial:
-      df: ${{ workflow.pe_cols_to_string.return }}
+      df: ${{ workflow.pe_exploded.return }}
       groupers: ${{ workflow.resolved_groupers.return }}
 
   # Issue: split_pe_groups only emits keys that exist in the events data,
@@ -701,6 +800,38 @@ workflow:
           argnames: df
           argvalues: ${{ workflow.mask_low_effort.return }}
 
+      # Tooltip decimals (issue #17): the rate and effort columns become
+      # fixed two-decimal strings ("0.50", "3.50") after the classification
+      # has used the numeric density. Events stays a whole number. The
+      # sum-mode numerator (event_sum, only present in sum mode) waits for
+      # ecoscope's format_numeric_columns (PR #868), which tolerates a
+      # missing column.
+      - name: Format Rate Tooltip
+        id: format_rate_tooltip
+        task: map_values_with_unit
+        partial:
+          input_column_name: ${{ workflow.rate_col_label.return }}
+          output_column_name: ${{ workflow.rate_col_label.return }}
+          original_unit: null
+          new_unit: null
+          decimal_places: 2
+        mapvalues:
+          argnames: df
+          argvalues: ${{ workflow.rename_rate_col.return }}
+
+      - name: Format Effort Tooltip
+        id: format_effort_tooltip
+        task: map_values_with_unit
+        partial:
+          input_column_name: "Patrol Effort (km)"
+          output_column_name: "Patrol Effort (km)"
+          original_unit: null
+          new_unit: null
+          decimal_places: 2
+        mapvalues:
+          argnames: df
+          argvalues: ${{ workflow.format_rate_tooltip.return }}
+
       - name: Create Encounter Rate Polygon Layer
         id: rate_polygon_layer
         task: create_polygon_layer
@@ -725,7 +856,7 @@ workflow:
             - "Patrol Effort (km)"
         mapvalues:
           argnames: geodataframe
-          argvalues: ${{ workflow.rename_rate_col.return }}
+          argvalues: ${{ workflow.format_effort_tooltip.return }}
 
       - name: "Set Rate Map Title"
         id: set_rate_map_title

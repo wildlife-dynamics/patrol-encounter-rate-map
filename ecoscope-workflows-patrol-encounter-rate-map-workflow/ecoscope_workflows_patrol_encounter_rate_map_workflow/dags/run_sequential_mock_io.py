@@ -45,19 +45,39 @@ get_event_type_display_names_from_events = create_func_magicmock(  # 🧪
     anchor="ecoscope.platform.tasks.io",  # 🧪
     func_name="get_event_type_display_names_from_events",  # 🧪
 )  # 🧪
+
+get_patrol_segments_from_patrols_df_and_combined_params = create_func_magicmock(  # 🧪
+    anchor="ecoscope.platform.tasks.io",  # 🧪
+    func_name="get_patrol_segments_from_patrols_df_and_combined_params",  # 🧪
+)  # 🧪
+from ecoscope.platform.tasks.filter import (
+    get_timezone_from_time_range as get_timezone_from_time_range,
+)
+from ecoscope.platform.tasks.transformation import (
+    convert_values_to_timezone as convert_values_to_timezone,
+)
+
+add_patrol_team_names = create_func_magicmock(  # 🧪
+    anchor="ecoscope.platform.tasks.io",  # 🧪
+    func_name="add_patrol_team_names",  # 🧪
+)  # 🧪
+
+add_patrol_roster_names = create_func_magicmock(  # 🧪
+    anchor="ecoscope.platform.tasks.io",  # 🧪
+    func_name="add_patrol_roster_names",  # 🧪
+)  # 🧪
+
+add_patrol_type_display_names = create_func_magicmock(  # 🧪
+    anchor="ecoscope.platform.tasks.io",  # 🧪
+    func_name="add_patrol_type_display_names",  # 🧪
+)  # 🧪
 from ecoscope.platform.tasks.config import get_bounding_box as get_bounding_box
 from ecoscope.platform.tasks.config import (
     get_filter_point_coords as get_filter_point_coords,
 )
 from ecoscope.platform.tasks.config import get_segment_filter as get_segment_filter
 from ecoscope.platform.tasks.config import set_traj_filters as set_traj_filters
-from ecoscope.platform.tasks.filter import (
-    get_timezone_from_time_range as get_timezone_from_time_range,
-)
 from ecoscope.platform.tasks.groupby import set_groupers as set_groupers
-from ecoscope.platform.tasks.transformation import (
-    convert_values_to_timezone as convert_values_to_timezone,
-)
 from ecoscope.platform.tasks.transformation import (
     extract_spatial_grouper_feature_group_names as extract_spatial_grouper_feature_group_names,
 )
@@ -70,6 +90,12 @@ from ecoscope.platform.tasks.preprocessing import (
     relocations_to_trajectory as relocations_to_trajectory,
 )
 from ecoscope.platform.tasks.skip import never as never
+from ecoscope.platform.tasks.transformation import (
+    add_leg_names_to_tracks as add_leg_names_to_tracks,
+)
+from ecoscope.platform.tasks.transformation import (
+    add_patrol_type_display_from_legs as add_patrol_type_display_from_legs,
+)
 from ecoscope.platform.tasks.transformation import (
     add_spatial_index as add_spatial_index,
 )
@@ -120,7 +146,13 @@ from ecoscope.platform.tasks.transformation import apply_color_map as apply_colo
 from ecoscope.platform.tasks.transformation import (
     convert_column_values_to_string as convert_column_values_to_string,
 )
+from ecoscope.platform.tasks.transformation import (
+    explode_for_groupers as explode_for_groupers,
+)
 from ecoscope.platform.tasks.transformation import fill_na as fill_na
+from ecoscope.platform.tasks.transformation import (
+    map_values_with_unit as map_values_with_unit,
+)
 from ecoscope.platform.tasks.transformation import (
     normalize_json_column as normalize_json_column,
 )
@@ -322,6 +354,27 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
         .call()
     )
 
+    patrol_legs = (
+        task(get_patrol_segments_from_patrols_df_and_combined_params)
+        # 🧪 validation omitted for mocked IO task (returns pre-loaded example data)
+        .set_task_instance_id("patrol_legs")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            patrols_df=prefetch_patrols,
+            combined_params=er_patrol_and_events_params,
+            **(params.get("patrol_legs") or {}),
+        )
+        .call()
+    )
+
     get_timezone = (
         task(get_timezone_from_time_range)
         .validate()
@@ -379,6 +432,91 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
             timezone=get_timezone,
             columns=["time"],
             **(params.get("convert_events_to_tz") or {}),
+        )
+        .call()
+    )
+
+    convert_legs_tz = (
+        task(convert_values_to_timezone)
+        .validate()
+        .set_task_instance_id("convert_legs_tz")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            df=patrol_legs,
+            timezone=get_timezone,
+            columns=["segment_start", "segment_end"],
+            **(params.get("convert_legs_tz") or {}),
+        )
+        .call()
+    )
+
+    legs_team_names = (
+        task(add_patrol_team_names)
+        # 🧪 validation omitted for mocked IO task (returns pre-loaded example data)
+        .set_task_instance_id("legs_team_names")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            df=convert_legs_tz,
+            client=er_client_name,
+            **(params.get("legs_team_names") or {}),
+        )
+        .call()
+    )
+
+    legs_roster_names = (
+        task(add_patrol_roster_names)
+        # 🧪 validation omitted for mocked IO task (returns pre-loaded example data)
+        .set_task_instance_id("legs_roster_names")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            df=legs_team_names,
+            client=er_client_name,
+            **(params.get("legs_roster_names") or {}),
+        )
+        .call()
+    )
+
+    legs_type_display = (
+        task(add_patrol_type_display_names)
+        # 🧪 validation omitted for mocked IO task (returns pre-loaded example data)
+        .set_task_instance_id("legs_type_display")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            df=legs_roster_names,
+            client=er_client_name,
+            **(params.get("legs_type_display") or {}),
         )
         .call()
     )
@@ -640,6 +778,48 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
         .call()
     )
 
+    traj_leg_names = (
+        task(add_leg_names_to_tracks)
+        .validate()
+        .set_task_instance_id("traj_leg_names")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            df=customize_columns,
+            legs=legs_type_display,
+            **(params.get("traj_leg_names") or {}),
+        )
+        .call()
+    )
+
+    traj_type_display = (
+        task(add_patrol_type_display_from_legs)
+        .validate()
+        .set_task_instance_id("traj_type_display")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            df=traj_leg_names,
+            legs=legs_type_display,
+            **(params.get("traj_type_display") or {}),
+        )
+        .call()
+    )
+
     traj_add_temporal_index = (
         task(add_temporal_index)
         .validate()
@@ -654,37 +834,12 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
             unpack_depth=1,
         )
         .partial(
-            df=customize_columns,
+            df=traj_type_display,
             time_col="segment_start",
             groupers=resolved_groupers,
             cast_to_datetime=True,
             format="mixed",
             **(params.get("traj_add_temporal_index") or {}),
-        )
-        .call()
-    )
-
-    traj_rename_grouper_cols = (
-        task(map_columns)
-        .validate()
-        .set_task_instance_id("traj_rename_grouper_cols")
-        .handle_errors()
-        .with_tracing()
-        .skipif(
-            conditions=[
-                any_is_empty_df,
-                any_dependency_skipped,
-            ],
-            unpack_depth=1,
-        )
-        .partial(
-            df=traj_add_temporal_index,
-            drop_columns=["patrol_type"],
-            retain_columns=[],
-            raise_if_not_found=False,
-            rename_columns={"patrol_type__value": "patrol_type"},
-            duplicate_strategy="suffix",
-            **(params.get("traj_rename_grouper_cols") or {}),
         )
         .call()
     )
@@ -703,7 +858,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
             unpack_depth=1,
         )
         .partial(
-            gdf=traj_rename_grouper_cols,
+            gdf=traj_add_temporal_index,
             groupers=resolved_groupers,
             **(params.get("traj_add_spatial_index") or {}),
         )
@@ -800,6 +955,48 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
         .call()
     )
 
+    pe_leg_names = (
+        task(add_leg_names_to_tracks)
+        .validate()
+        .set_task_instance_id("pe_leg_names")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            df=drop_extra_prefix_events,
+            legs=legs_type_display,
+            **(params.get("pe_leg_names") or {}),
+        )
+        .call()
+    )
+
+    pe_type_display = (
+        task(add_patrol_type_display_from_legs)
+        .validate()
+        .set_task_instance_id("pe_type_display")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            df=pe_leg_names,
+            legs=legs_type_display,
+            **(params.get("pe_type_display") or {}),
+        )
+        .call()
+    )
+
     filter_patrol_events = (
         task(apply_reloc_coord_filter)
         .validate()
@@ -814,7 +1011,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
             unpack_depth=1,
         )
         .partial(
-            df=drop_extra_prefix_events,
+            df=pe_type_display,
             roi_gdf=None,
             roi_name=None,
             reset_index=True,
@@ -885,7 +1082,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
         )
         .partial(
             df=traj_add_spatial_index,
-            columns=["patrol_serial_number", "patrol_type"],
+            columns=["patrol_serial_number", "patrol_type", "patrol_team_name"],
             **(params.get("traj_cols_to_string") or {}),
         )
         .call()
@@ -906,8 +1103,50 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
         )
         .partial(
             df=pe_add_spatial_index,
-            columns=["patrol_serial_number", "patrol_type"],
+            columns=["patrol_serial_number", "patrol_type", "patrol_team_name"],
             **(params.get("pe_cols_to_string") or {}),
+        )
+        .call()
+    )
+
+    traj_exploded = (
+        task(explode_for_groupers)
+        .validate()
+        .set_task_instance_id("traj_exploded")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            df=traj_cols_to_string,
+            groupers=resolved_groupers,
+            **(params.get("traj_exploded") or {}),
+        )
+        .call()
+    )
+
+    pe_exploded = (
+        task(explode_for_groupers)
+        .validate()
+        .set_task_instance_id("pe_exploded")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            df=pe_cols_to_string,
+            groupers=resolved_groupers,
+            **(params.get("pe_exploded") or {}),
         )
         .call()
     )
@@ -926,7 +1165,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
             unpack_depth=1,
         )
         .partial(
-            df=traj_cols_to_string,
+            df=traj_exploded,
             groupers=resolved_groupers,
             **(params.get("split_traj_groups") or {}),
         )
@@ -947,7 +1186,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
             unpack_depth=1,
         )
         .partial(
-            df=pe_cols_to_string,
+            df=pe_exploded,
             groupers=resolved_groupers,
             **(params.get("split_pe_groups") or {}),
         )
@@ -1356,6 +1595,54 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
         .mapvalues(argnames=["df"], argvalues=mask_low_effort)
     )
 
+    format_rate_tooltip = (
+        task(map_values_with_unit)
+        .validate()
+        .set_task_instance_id("format_rate_tooltip")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            input_column_name=rate_col_label,
+            output_column_name=rate_col_label,
+            original_unit=None,
+            new_unit=None,
+            decimal_places=2,
+            **(params.get("format_rate_tooltip") or {}),
+        )
+        .mapvalues(argnames=["df"], argvalues=rename_rate_col)
+    )
+
+    format_effort_tooltip = (
+        task(map_values_with_unit)
+        .validate()
+        .set_task_instance_id("format_effort_tooltip")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            input_column_name="Patrol Effort (km)",
+            output_column_name="Patrol Effort (km)",
+            original_unit=None,
+            new_unit=None,
+            decimal_places=2,
+            **(params.get("format_effort_tooltip") or {}),
+        )
+        .mapvalues(argnames=["df"], argvalues=format_rate_tooltip)
+    )
+
     rate_polygon_layer = (
         task(create_polygon_layer)
         .validate()
@@ -1384,7 +1671,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
             ],
             **(params.get("rate_polygon_layer") or {}),
         )
-        .mapvalues(argnames=["geodataframe"], argvalues=rename_rate_col)
+        .mapvalues(argnames=["geodataframe"], argvalues=format_effort_tooltip)
     )
 
     set_rate_map_title = (

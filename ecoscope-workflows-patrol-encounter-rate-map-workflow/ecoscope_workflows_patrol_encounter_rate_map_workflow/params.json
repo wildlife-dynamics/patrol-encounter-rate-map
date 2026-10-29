@@ -25,8 +25,8 @@
       "properties": {
         "data_source": {
           "$ref": "#/$defs/EarthRangerConnection",
-          "title": "",
-          "description": "Select one of your configured data sources."
+          "description": "Select one of your configured data sources.",
+          "title": ""
         }
       },
       "required": [
@@ -39,23 +39,19 @@
       "additionalProperties": false,
       "properties": {
         "since": {
+          "description": "The start time",
           "format": "date-time",
           "title": "Since",
-          "type": "string",
-          "description": "The start time"
+          "type": "string"
         },
         "until": {
+          "description": "The end time",
           "format": "date-time",
           "title": "Until",
-          "type": "string",
-          "description": "The end time"
+          "type": "string"
         },
         "timezone": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/TimezoneInfo"
-            }
-          ],
+          "$ref": "#/$defs/TimezoneInfo",
           "default": null,
           "title": "Timezone"
         }
@@ -72,25 +68,27 @@
       "additionalProperties": false,
       "properties": {
         "patrol_types": {
+          "description": "Specify the patrol type(s) to analyze (optional). Leave empty to analyze all patrol types.",
           "items": {
             "type": "string"
           },
           "title": "Patrol Types",
-          "type": "array",
-          "description": "Specify the patrol type(s) to analyze (optional). Leave empty to analyze all patrol types."
+          "type": "array"
         },
         "event_types": {
+          "description": "Specify the event type(s) to analyze (optional). Leave this section empty to analyze all event types.",
           "items": {
             "type": "string"
           },
           "title": "Event Types",
-          "type": "array",
-          "description": "Specify the event type(s) to analyze (optional). Leave this section empty to analyze all event types."
+          "type": "array"
         },
         "status": {
           "default": [
             "done"
           ],
+          "description": "Choose to analyze patrols with a certain status. If left empty, patrols of all status will be analyzed",
+          "ecoscope:advanced": true,
           "items": {
             "type": "string",
             "oneOf": [
@@ -114,12 +112,12 @@
           },
           "title": "Patrol Status",
           "type": "array",
-          "description": "Choose to analyze patrols with a certain status. If left empty, patrols of all status will be analyzed",
-          "uniqueItems": true,
-          "ecoscope:advanced": true
+          "uniqueItems": true
         },
         "event_states": {
           "default": null,
+          "description": "Choose to analyze events with a certain state. If left empty, events of all states will be analyzed",
+          "ecoscope:advanced": true,
           "items": {
             "type": "string",
             "oneOf": [
@@ -143,9 +141,7 @@
           },
           "title": "Event State",
           "type": "array",
-          "description": "Choose to analyze events with a certain state. If left empty, events of all states will be analyzed",
-          "uniqueItems": true,
-          "ecoscope:advanced": true
+          "uniqueItems": true
         }
       },
       "required": [
@@ -159,20 +155,16 @@
       "additionalProperties": false,
       "properties": {
         "bounding_box": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/BoundingBox"
-            }
-          ],
+          "$ref": "#/$defs/BoundingBox",
           "default": {
             "min_y": -90.0,
             "max_y": 90.0,
             "min_x": -180.0,
             "max_x": 180.0
           },
-          "title": "Bounding Box",
           "description": "Only include observations/events inside this bounding box.",
-          "ecoscope:advanced": true
+          "ecoscope:advanced": true,
+          "title": "Bounding Box"
         },
         "filter_point_coords": {
           "default": [
@@ -189,20 +181,16 @@
               "x": 1.0
             }
           ],
+          "description": "Exclude observations/events at these exact coordinates.",
+          "ecoscope:advanced": true,
           "items": {
             "$ref": "#/$defs/Coordinate"
           },
           "title": "Filter Exact Point Coordinates",
-          "type": "array",
-          "description": "Exclude observations/events at these exact coordinates.",
-          "ecoscope:advanced": true
+          "type": "array"
         },
         "trajectory_segment_filter": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/TrajectorySegmentFilter"
-            }
-          ],
+          "$ref": "#/$defs/TrajectorySegmentFilter",
           "default": {
             "min_length_meters": 0.001,
             "max_length_meters": 100000,
@@ -211,9 +199,9 @@
             "min_speed_kmhr": 0.01,
             "max_speed_kmhr": 500
           },
-          "title": "Trajectory Filter",
           "description": "Drop trajectory segments outside these length/time/speed bounds.",
-          "ecoscope:advanced": true
+          "ecoscope:advanced": true,
+          "title": "Trajectory Filter"
         }
       },
       "type": "object",
@@ -225,6 +213,7 @@
       "properties": {
         "groupers": {
           "default": null,
+          "description": "            Specify how the data should be grouped to create the views for your dashboard.\n            This field is optional; if left blank, all the data will appear in a single view.\n            ",
           "items": {
             "anyOf": [
               {
@@ -240,8 +229,7 @@
             "title": "Group by"
           },
           "title": " ",
-          "type": "array",
-          "description": "            Specify how the data should be grouped to create the views for your dashboard.\n            This field is optional; if left blank, all the data will appear in a single view.\n            "
+          "type": "array"
         }
       },
       "type": "object",
@@ -252,26 +240,6 @@
       "additionalProperties": false,
       "properties": {
         "aggregation": {
-          "default": null,
-          "title": "",
-          "type": "object",
-          "properties": {
-            "count_or_sum": {
-              "type": "string",
-              "title": "Measure Events By",
-              "default": "Count",
-              "oneOf": [
-                {
-                  "const": "Count",
-                  "title": "Number of Events"
-                },
-                {
-                  "const": "Sum of Column",
-                  "title": "Sum of an Event Field"
-                }
-              ]
-            }
-          },
           "allOf": [
             {
               "if": {
@@ -291,15 +259,35 @@
                 }
               }
             }
-          ]
+          ],
+          "default": null,
+          "properties": {
+            "count_or_sum": {
+              "type": "string",
+              "title": "Measure Events By",
+              "default": "Count",
+              "oneOf": [
+                {
+                  "const": "Count",
+                  "title": "Number of Events"
+                },
+                {
+                  "const": "Sum of Column",
+                  "title": "Sum of an Event Field"
+                }
+              ]
+            }
+          },
+          "title": "",
+          "type": "object"
         },
         "threshold_km": {
           "default": 0.2,
-          "minimum": 0.0,
-          "title": "Minimum Patrol Effort Threshold (km)",
-          "type": "number",
           "description": "Grid cells with less patrol effort than this render grey.",
-          "ecoscope:advanced": true
+          "ecoscope:advanced": true,
+          "minimum": 0,
+          "title": "Minimum Patrol Effort Threshold (km)",
+          "type": "number"
         },
         "auto_scale_or_custom_cell_size": {
           "anyOf": [
@@ -313,15 +301,15 @@
           "default": {
             "auto_scale_or_custom": "Auto-scale"
           },
-          "title": "Grid Cell Size",
-          "ecoscope:advanced": true
+          "ecoscope:advanced": true,
+          "title": "Grid Cell Size"
         },
         "crs": {
           "default": "EPSG:3857",
-          "title": "Coordinate Reference System",
-          "type": "string",
           "description": "The coordinate reference system in which to perform the calculation, must be a valid CRS authority code, for example ESRI:53042",
-          "ecoscope:advanced": true
+          "ecoscope:advanced": true,
+          "title": "Coordinate Reference System",
+          "type": "string"
         },
         "base_maps": {
           "default": [
@@ -338,8 +326,9 @@
               "min_zoom": 0
             }
           ],
+          "description": "Select tile layers to use as base layers in map outputs. The first layer in the list will be the bottommost layer displayed.",
+          "ecoscope:advanced": true,
           "items": {
-            "title": "Base Layer",
             "anyOf": [
               {
                 "description": "A tiled raster layer loaded on-demand from a URL template (e.g., base maps).",
@@ -357,8 +346,8 @@
                     "default": 1,
                     "description": "Set layer transparency from 1 (fully visible) to 0 (hidden).",
                     "ecoscope:advanced": true,
-                    "maximum": 1.0,
-                    "minimum": 0.0,
+                    "maximum": 1,
+                    "minimum": 0,
                     "title": "Layer Opacity",
                     "type": "number"
                   }
@@ -382,8 +371,8 @@
                     "default": 1,
                     "description": "Set layer transparency from 1 (fully visible) to 0 (hidden).",
                     "ecoscope:advanced": true,
-                    "maximum": 1.0,
-                    "minimum": 0.0,
+                    "maximum": 1,
+                    "minimum": 0,
                     "title": "Layer Opacity",
                     "type": "number"
                   }
@@ -407,8 +396,8 @@
                     "default": 1,
                     "description": "Set layer transparency from 1 (fully visible) to 0 (hidden).",
                     "ecoscope:advanced": true,
-                    "maximum": 1.0,
-                    "minimum": 0.0,
+                    "maximum": 1,
+                    "minimum": 0,
                     "title": "Layer Opacity",
                     "type": "number"
                   }
@@ -432,8 +421,8 @@
                     "default": 1,
                     "description": "Set layer transparency from 1 (fully visible) to 0 (hidden).",
                     "ecoscope:advanced": true,
-                    "maximum": 1.0,
-                    "minimum": 0.0,
+                    "maximum": 1,
+                    "minimum": 0,
                     "title": "Layer Opacity",
                     "type": "number"
                   }
@@ -457,8 +446,8 @@
                     "default": 1,
                     "description": "Set layer transparency from 1 (fully visible) to 0 (hidden).",
                     "ecoscope:advanced": true,
-                    "maximum": 1.0,
-                    "minimum": 0.0,
+                    "maximum": 1,
+                    "minimum": 0,
                     "title": "Layer Opacity",
                     "type": "number"
                   }
@@ -480,8 +469,8 @@
                     "default": 1,
                     "description": "Set layer transparency from 1 (fully visible) to 0 (hidden).",
                     "ecoscope:advanced": true,
-                    "maximum": 1.0,
-                    "minimum": 0.0,
+                    "maximum": 1,
+                    "minimum": 0,
                     "title": "Custom Layer Opacity",
                     "type": "number"
                   },
@@ -501,12 +490,11 @@
                 "title": "Custom Layer (Advanced)",
                 "type": "object"
               }
-            ]
+            ],
+            "title": "Base Layer"
           },
           "title": "Map Base Layers",
-          "type": "array",
-          "description": "Select tile layers to use as base layers in map outputs. The first layer in the list will be the bottommost layer displayed.",
-          "ecoscope:advanced": true
+          "type": "array"
         }
       },
       "type": "object",
@@ -733,9 +721,6 @@
           "const": "Auto-scale",
           "default": "Auto-scale",
           "ecoscope:advanced": true,
-          "enum": [
-            "Auto-scale"
-          ],
           "title": "Grid Cell Size",
           "type": "string"
         }
@@ -749,9 +734,6 @@
           "const": "Customize",
           "default": "Customize",
           "ecoscope:advanced": true,
-          "enum": [
-            "Customize"
-          ],
           "title": "Grid Cell Size",
           "type": "string"
         },
