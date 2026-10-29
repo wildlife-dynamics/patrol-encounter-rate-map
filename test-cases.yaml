@@ -1094,7 +1094,10 @@ flag-off:
 mep-dev-legs:
   name: MEP Dev (patrol legs, Team grouper)
   description: >-
-    Live EarthRanger (mep-dev): the seeded ecoscope_leg_test patrols of 5-6 Jan 2026 (3 legs, no events) grouped by Team: one view "Ecoscope Leg Test Team" with an all-zero grid over the track; tooltip strings two-decimal.
+    Live EarthRanger (mep-dev): the seeded ecoscope_leg_test patrols of 5-6 Jan 2026 (3 legs, no events) grouped by Team:
+    one view "Ecoscope Leg Test Team" (team name resolved live), whose map renders without data because the site holds no
+    events on those legs (the events branch skips end to end, as in zero-events-legs). Run with the mep-dev connection
+    env vars; verified 2026-10-29.
   mock_io: false
   params:
     workflow_details:
