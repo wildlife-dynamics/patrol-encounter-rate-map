@@ -17,11 +17,11 @@ platforms = [
 ]
 
 [dependencies.ecoscope-platform]
-version = ">=2.23.0,<2.24.0"
+version = ">=2.27.1,<2.28.0"
 channel = "https://repo.prefix.dev/ecoscope-workflows/"
 
 [dependencies.ecoscope-workflows-ext-custom]
-version = "==0.1.1"
+version = "==0.1.5"
 channel = "https://repo.prefix.dev/ecoscope-workflows-custom/"
 
 [dependencies.pydeck]

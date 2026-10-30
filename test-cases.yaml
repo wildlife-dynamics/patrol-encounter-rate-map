@@ -2,6 +2,11 @@ base:
   name: Base Test Case
   description: Baseline run with default settings; verifies the full pipeline against mocked I/O.
   mock_io: true
+  mock_io_overrides:
+    ecoscope.platform.tasks.io.get_patrol_segments_from_patrols_df_and_combined_params: dev/fixtures/flag-off/legs.parquet
+    ecoscope.platform.tasks.io.add_patrol_team_names: dev/fixtures/flag-off/legs-team-names.parquet
+    ecoscope.platform.tasks.io.add_patrol_roster_names: dev/fixtures/flag-off/legs-roster-names.parquet
+    ecoscope.platform.tasks.io.add_patrol_type_display_names: dev/fixtures/flag-off/legs-type-display-names.parquet
   params:
     workflow_details:
       name: Encounter Rate Workflow
@@ -59,6 +64,11 @@ month-grouper:
   name: Monthly Grouper
   description: Groups dashboard widgets by month to verify per-group splits and the missing-column path through drop_inactive_grid_cells.
   mock_io: true
+  mock_io_overrides:
+    ecoscope.platform.tasks.io.get_patrol_segments_from_patrols_df_and_combined_params: dev/fixtures/flag-off/legs.parquet
+    ecoscope.platform.tasks.io.add_patrol_team_names: dev/fixtures/flag-off/legs-team-names.parquet
+    ecoscope.platform.tasks.io.add_patrol_roster_names: dev/fixtures/flag-off/legs-roster-names.parquet
+    ecoscope.platform.tasks.io.add_patrol_type_display_names: dev/fixtures/flag-off/legs-type-display-names.parquet
   params:
     workflow_details:
       name: Encounter Rate Workflow
@@ -117,6 +127,11 @@ fine-grid:
   name: 1km Grid Cell Size
   description: Uses a fine 1 km custom grid cell size to exercise the encounter rate map with many small cells.
   mock_io: true
+  mock_io_overrides:
+    ecoscope.platform.tasks.io.get_patrol_segments_from_patrols_df_and_combined_params: dev/fixtures/flag-off/legs.parquet
+    ecoscope.platform.tasks.io.add_patrol_team_names: dev/fixtures/flag-off/legs-team-names.parquet
+    ecoscope.platform.tasks.io.add_patrol_roster_names: dev/fixtures/flag-off/legs-roster-names.parquet
+    ecoscope.platform.tasks.io.add_patrol_type_display_names: dev/fixtures/flag-off/legs-type-display-names.parquet
   params:
     workflow_details:
       name: Encounter Rate Workflow
@@ -166,6 +181,11 @@ value-grouper-patrol-type:
   name: Value Grouper by Patrol Type
   description: Groups dashboard widgets by patrol type so each patrol category renders as its own view.
   mock_io: true
+  mock_io_overrides:
+    ecoscope.platform.tasks.io.get_patrol_segments_from_patrols_df_and_combined_params: dev/fixtures/flag-off/legs.parquet
+    ecoscope.platform.tasks.io.add_patrol_team_names: dev/fixtures/flag-off/legs-team-names.parquet
+    ecoscope.platform.tasks.io.add_patrol_roster_names: dev/fixtures/flag-off/legs-roster-names.parquet
+    ecoscope.platform.tasks.io.add_patrol_type_display_names: dev/fixtures/flag-off/legs-type-display-names.parquet
   params:
     workflow_details:
       name: Encounter Rate Workflow
@@ -216,6 +236,11 @@ auto-scale-grid:
   name: Auto-scale Grid
   description: Uses the Auto-scale grid cell size to verify cell size selection from the data extent.
   mock_io: true
+  mock_io_overrides:
+    ecoscope.platform.tasks.io.get_patrol_segments_from_patrols_df_and_combined_params: dev/fixtures/flag-off/legs.parquet
+    ecoscope.platform.tasks.io.add_patrol_team_names: dev/fixtures/flag-off/legs-team-names.parquet
+    ecoscope.platform.tasks.io.add_patrol_roster_names: dev/fixtures/flag-off/legs-roster-names.parquet
+    ecoscope.platform.tasks.io.add_patrol_type_display_names: dev/fixtures/flag-off/legs-type-display-names.parquet
   params:
     workflow_details:
       name: Encounter Rate Workflow
@@ -265,6 +290,11 @@ spatial-grouper:
   description: 'Mocked IO — exercises the spatial grouper: trajectories and events split by the mocked spatial feature group
     regions.'
   mock_io: true
+  mock_io_overrides:
+    ecoscope.platform.tasks.io.get_patrol_segments_from_patrols_df_and_combined_params: dev/fixtures/flag-off/legs.parquet
+    ecoscope.platform.tasks.io.add_patrol_team_names: dev/fixtures/flag-off/legs-team-names.parquet
+    ecoscope.platform.tasks.io.add_patrol_roster_names: dev/fixtures/flag-off/legs-roster-names.parquet
+    ecoscope.platform.tasks.io.add_patrol_type_display_names: dev/fixtures/flag-off/legs-type-display-names.parquet
   params:
     workflow_details:
       name: Patrol Encounter Rate Map
@@ -324,6 +354,11 @@ agg-column:
   description: Sum an event details field per grid cell as the encounter rate numerator instead of counting events; verifies
     sum_column wiring and dynamic labels. The column name matches the mocked process_events_details example data.
   mock_io: true
+  mock_io_overrides:
+    ecoscope.platform.tasks.io.get_patrol_segments_from_patrols_df_and_combined_params: dev/fixtures/flag-off/legs.parquet
+    ecoscope.platform.tasks.io.add_patrol_team_names: dev/fixtures/flag-off/legs-team-names.parquet
+    ecoscope.platform.tasks.io.add_patrol_roster_names: dev/fixtures/flag-off/legs-roster-names.parquet
+    ecoscope.platform.tasks.io.add_patrol_type_display_names: dev/fixtures/flag-off/legs-type-display-names.parquet
   params:
     workflow_details:
       name: Encounter Rate Workflow (Aggregate Column)
@@ -432,3 +467,683 @@ mep_dev:
       base_maps:
         - url: https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}
           opacity: 1.0
+
+base-legs:
+  name: Base (patrol leg fixtures)
+  description: >-
+    Default form on the synthetic leg fixtures (2 patrols, 3 legs, 9 planted events, 1 km cells): one map whose grid counts all 9 events; patrol_type on every frame is the display name "Ecoscope Leg Test".
+  mock_io: true
+  mock_io_overrides:
+    ecoscope.platform.tasks.io.get_patrols_from_combined_params: dev/fixtures/legs/patrols.parquet
+    ecoscope.platform.tasks.io.get_patrol_observations_from_patrols_df_and_combined_params: dev/fixtures/legs/observations.parquet
+    ecoscope.platform.tasks.io.get_event_type_display_names_from_events: dev/fixtures/legs/events-display-names.parquet
+    ecoscope.platform.tasks.io.get_patrol_segments_from_patrols_df_and_combined_params: dev/fixtures/legs/legs.parquet
+    ecoscope.platform.tasks.io.add_patrol_team_names: dev/fixtures/legs/legs-team-names.parquet
+    ecoscope.platform.tasks.io.add_patrol_roster_names: dev/fixtures/legs/legs-roster-names.parquet
+    ecoscope.platform.tasks.io.add_patrol_type_display_names: dev/fixtures/legs/legs-type-display-names.parquet
+  params:
+    workflow_details:
+      name: Patrol Encounter Rate Map
+      description: Base (patrol leg fixtures).
+    er_client_name:
+      data_source:
+        name: mep_dev
+    time_range:
+      since: '2026-01-05T00:00:00'
+      until: '2026-01-07T00:00:00'
+      timezone:
+        label: UTC (UTC+00:00)
+        tzCode: UTC
+        name: (UTC+00:00) UTC
+        utc: '+00:00'
+    er_patrol_and_events_params:
+      patrol_types: [ecoscope_leg_test]
+      status: [done]
+      event_types: []
+    groupers:
+      groupers: []
+    patrol_filters:
+      trajectory_segment_filter:
+        min_length_meters: 0.001
+        max_length_meters: 10000.0
+        max_time_secs: 3600.0
+        min_time_secs: 1.0
+        max_speed_kmhr: 120.0
+        min_speed_kmhr: 0.01
+      bounding_box:
+        min_x: -180.0
+        max_x: 180.0
+        min_y: -90.0
+        max_y: 90.0
+      filter_point_coords:
+      - x: 180.0
+        y: 90.0
+      - x: 0.0
+        y: 0.0
+      - x: 1.0
+        y: 1.0
+    map_options:
+      auto_scale_or_custom_cell_size:
+        auto_scale_or_custom: Customize
+        grid_cell_size: 1000
+      base_maps:
+      - url: https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}
+        opacity: 1.0
+
+grouped-team:
+  name: Team grouper
+  description: >-
+    Team dashboard grouper on the leg fixtures: one view named "Leg Test Team" with the full track and all 9 events.
+  mock_io: true
+  mock_io_overrides:
+    ecoscope.platform.tasks.io.get_patrols_from_combined_params: dev/fixtures/legs/patrols.parquet
+    ecoscope.platform.tasks.io.get_patrol_observations_from_patrols_df_and_combined_params: dev/fixtures/legs/observations.parquet
+    ecoscope.platform.tasks.io.get_event_type_display_names_from_events: dev/fixtures/legs/events-display-names.parquet
+    ecoscope.platform.tasks.io.get_patrol_segments_from_patrols_df_and_combined_params: dev/fixtures/legs/legs.parquet
+    ecoscope.platform.tasks.io.add_patrol_team_names: dev/fixtures/legs/legs-team-names.parquet
+    ecoscope.platform.tasks.io.add_patrol_roster_names: dev/fixtures/legs/legs-roster-names.parquet
+    ecoscope.platform.tasks.io.add_patrol_type_display_names: dev/fixtures/legs/legs-type-display-names.parquet
+  params:
+    workflow_details:
+      name: Patrol Encounter Rate Map
+      description: Team grouper.
+    er_client_name:
+      data_source:
+        name: mep_dev
+    time_range:
+      since: '2026-01-05T00:00:00'
+      until: '2026-01-07T00:00:00'
+      timezone:
+        label: UTC (UTC+00:00)
+        tzCode: UTC
+        name: (UTC+00:00) UTC
+        utc: '+00:00'
+    er_patrol_and_events_params:
+      patrol_types: [ecoscope_leg_test]
+      status: [done]
+      event_types: []
+    groupers:
+      groupers: [{index_name: patrol_team_name}]
+    patrol_filters:
+      trajectory_segment_filter:
+        min_length_meters: 0.001
+        max_length_meters: 10000.0
+        max_time_secs: 3600.0
+        min_time_secs: 1.0
+        max_speed_kmhr: 120.0
+        min_speed_kmhr: 0.01
+      bounding_box:
+        min_x: -180.0
+        max_x: 180.0
+        min_y: -90.0
+        max_y: 90.0
+      filter_point_coords:
+      - x: 180.0
+        y: 90.0
+      - x: 0.0
+        y: 0.0
+      - x: 1.0
+        y: 1.0
+    map_options:
+      auto_scale_or_custom_cell_size:
+        auto_scale_or_custom: Customize
+        grid_cell_size: 1000
+      base_maps:
+      - url: https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}
+        opacity: 1.0
+
+grouped-member:
+  name: Member grouper
+  description: >-
+    Member grouper explodes both frames: two views (Ranger Amani, Ranger Baraka) with identical grids, each over the full track and all 9 events.
+  mock_io: true
+  mock_io_overrides:
+    ecoscope.platform.tasks.io.get_patrols_from_combined_params: dev/fixtures/legs/patrols.parquet
+    ecoscope.platform.tasks.io.get_patrol_observations_from_patrols_df_and_combined_params: dev/fixtures/legs/observations.parquet
+    ecoscope.platform.tasks.io.get_event_type_display_names_from_events: dev/fixtures/legs/events-display-names.parquet
+    ecoscope.platform.tasks.io.get_patrol_segments_from_patrols_df_and_combined_params: dev/fixtures/legs/legs.parquet
+    ecoscope.platform.tasks.io.add_patrol_team_names: dev/fixtures/legs/legs-team-names.parquet
+    ecoscope.platform.tasks.io.add_patrol_roster_names: dev/fixtures/legs/legs-roster-names.parquet
+    ecoscope.platform.tasks.io.add_patrol_type_display_names: dev/fixtures/legs/legs-type-display-names.parquet
+  params:
+    workflow_details:
+      name: Patrol Encounter Rate Map
+      description: Member grouper.
+    er_client_name:
+      data_source:
+        name: mep_dev
+    time_range:
+      since: '2026-01-05T00:00:00'
+      until: '2026-01-07T00:00:00'
+      timezone:
+        label: UTC (UTC+00:00)
+        tzCode: UTC
+        name: (UTC+00:00) UTC
+        utc: '+00:00'
+    er_patrol_and_events_params:
+      patrol_types: [ecoscope_leg_test]
+      status: [done]
+      event_types: []
+    groupers:
+      groupers: [{index_name: patrol_member_names}]
+    patrol_filters:
+      trajectory_segment_filter:
+        min_length_meters: 0.001
+        max_length_meters: 10000.0
+        max_time_secs: 3600.0
+        min_time_secs: 1.0
+        max_speed_kmhr: 120.0
+        min_speed_kmhr: 0.01
+      bounding_box:
+        min_x: -180.0
+        max_x: 180.0
+        min_y: -90.0
+        max_y: 90.0
+      filter_point_coords:
+      - x: 180.0
+        y: 90.0
+      - x: 0.0
+        y: 0.0
+      - x: 1.0
+        y: 1.0
+    map_options:
+      auto_scale_or_custom_cell_size:
+        auto_scale_or_custom: Customize
+        grid_cell_size: 1000
+      base_maps:
+      - url: https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}
+        opacity: 1.0
+
+grouped-asset:
+  name: Asset grouper
+  description: >-
+    Asset grouper on the leg fixtures: one view "Patrol Vehicle 1".
+  mock_io: true
+  mock_io_overrides:
+    ecoscope.platform.tasks.io.get_patrols_from_combined_params: dev/fixtures/legs/patrols.parquet
+    ecoscope.platform.tasks.io.get_patrol_observations_from_patrols_df_and_combined_params: dev/fixtures/legs/observations.parquet
+    ecoscope.platform.tasks.io.get_event_type_display_names_from_events: dev/fixtures/legs/events-display-names.parquet
+    ecoscope.platform.tasks.io.get_patrol_segments_from_patrols_df_and_combined_params: dev/fixtures/legs/legs.parquet
+    ecoscope.platform.tasks.io.add_patrol_team_names: dev/fixtures/legs/legs-team-names.parquet
+    ecoscope.platform.tasks.io.add_patrol_roster_names: dev/fixtures/legs/legs-roster-names.parquet
+    ecoscope.platform.tasks.io.add_patrol_type_display_names: dev/fixtures/legs/legs-type-display-names.parquet
+  params:
+    workflow_details:
+      name: Patrol Encounter Rate Map
+      description: Asset grouper.
+    er_client_name:
+      data_source:
+        name: mep_dev
+    time_range:
+      since: '2026-01-05T00:00:00'
+      until: '2026-01-07T00:00:00'
+      timezone:
+        label: UTC (UTC+00:00)
+        tzCode: UTC
+        name: (UTC+00:00) UTC
+        utc: '+00:00'
+    er_patrol_and_events_params:
+      patrol_types: [ecoscope_leg_test]
+      status: [done]
+      event_types: []
+    groupers:
+      groupers: [{index_name: patrol_asset_names}]
+    patrol_filters:
+      trajectory_segment_filter:
+        min_length_meters: 0.001
+        max_length_meters: 10000.0
+        max_time_secs: 3600.0
+        min_time_secs: 1.0
+        max_speed_kmhr: 120.0
+        min_speed_kmhr: 0.01
+      bounding_box:
+        min_x: -180.0
+        max_x: 180.0
+        min_y: -90.0
+        max_y: 90.0
+      filter_point_coords:
+      - x: 180.0
+        y: 90.0
+      - x: 0.0
+        y: 0.0
+      - x: 1.0
+        y: 1.0
+    map_options:
+      auto_scale_or_custom_cell_size:
+        auto_scale_or_custom: Customize
+        grid_cell_size: 1000
+      base_maps:
+      - url: https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}
+        opacity: 1.0
+
+by-patrol-type-legs:
+  name: Patrol Type grouper (display name)
+  description: >-
+    Patrol Type grouper on the leg fixtures: the view key is the display name "Ecoscope Leg Test", not the slug (issue #14).
+  mock_io: true
+  mock_io_overrides:
+    ecoscope.platform.tasks.io.get_patrols_from_combined_params: dev/fixtures/legs/patrols.parquet
+    ecoscope.platform.tasks.io.get_patrol_observations_from_patrols_df_and_combined_params: dev/fixtures/legs/observations.parquet
+    ecoscope.platform.tasks.io.get_event_type_display_names_from_events: dev/fixtures/legs/events-display-names.parquet
+    ecoscope.platform.tasks.io.get_patrol_segments_from_patrols_df_and_combined_params: dev/fixtures/legs/legs.parquet
+    ecoscope.platform.tasks.io.add_patrol_team_names: dev/fixtures/legs/legs-team-names.parquet
+    ecoscope.platform.tasks.io.add_patrol_roster_names: dev/fixtures/legs/legs-roster-names.parquet
+    ecoscope.platform.tasks.io.add_patrol_type_display_names: dev/fixtures/legs/legs-type-display-names.parquet
+  params:
+    workflow_details:
+      name: Patrol Encounter Rate Map
+      description: Patrol Type grouper (display name).
+    er_client_name:
+      data_source:
+        name: mep_dev
+    time_range:
+      since: '2026-01-05T00:00:00'
+      until: '2026-01-07T00:00:00'
+      timezone:
+        label: UTC (UTC+00:00)
+        tzCode: UTC
+        name: (UTC+00:00) UTC
+        utc: '+00:00'
+    er_patrol_and_events_params:
+      patrol_types: [ecoscope_leg_test]
+      status: [done]
+      event_types: []
+    groupers:
+      groupers: [{index_name: patrol_type}]
+    patrol_filters:
+      trajectory_segment_filter:
+        min_length_meters: 0.001
+        max_length_meters: 10000.0
+        max_time_secs: 3600.0
+        min_time_secs: 1.0
+        max_speed_kmhr: 120.0
+        min_speed_kmhr: 0.01
+      bounding_box:
+        min_x: -180.0
+        max_x: 180.0
+        min_y: -90.0
+        max_y: 90.0
+      filter_point_coords:
+      - x: 180.0
+        y: 90.0
+      - x: 0.0
+        y: 0.0
+      - x: 1.0
+        y: 1.0
+    map_options:
+      auto_scale_or_custom_cell_size:
+        auto_scale_or_custom: Customize
+        grid_cell_size: 1000
+      base_maps:
+      - url: https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}
+        opacity: 1.0
+
+spatial-grouped-legs:
+  name: Spatial grouper (LegTestRegions)
+  description: >-
+    Spatial grouper on the leg fixtures: West and East views, events counted where they lie (6 West, 3 East); tracks and events split alike.
+  mock_io: true
+  mock_io_overrides:
+    ecoscope.platform.tasks.io.get_patrols_from_combined_params: dev/fixtures/legs/patrols.parquet
+    ecoscope.platform.tasks.io.get_patrol_observations_from_patrols_df_and_combined_params: dev/fixtures/legs/observations.parquet
+    ecoscope.platform.tasks.io.get_event_type_display_names_from_events: dev/fixtures/legs/events-display-names.parquet
+    ecoscope.platform.tasks.io.get_patrol_segments_from_patrols_df_and_combined_params: dev/fixtures/legs/legs.parquet
+    ecoscope.platform.tasks.io.add_patrol_team_names: dev/fixtures/legs/legs-team-names.parquet
+    ecoscope.platform.tasks.io.add_patrol_roster_names: dev/fixtures/legs/legs-roster-names.parquet
+    ecoscope.platform.tasks.io.add_patrol_type_display_names: dev/fixtures/legs/legs-type-display-names.parquet
+    ecoscope.platform.tasks.io.get_spatial_features_group: dev/fixtures/legs/spatial-features.parquet
+  params:
+    workflow_details:
+      name: Patrol Encounter Rate Map
+      description: Spatial grouper (LegTestRegions).
+    er_client_name:
+      data_source:
+        name: mep_dev
+    time_range:
+      since: '2026-01-05T00:00:00'
+      until: '2026-01-07T00:00:00'
+      timezone:
+        label: UTC (UTC+00:00)
+        tzCode: UTC
+        name: (UTC+00:00) UTC
+        utc: '+00:00'
+    er_patrol_and_events_params:
+      patrol_types: [ecoscope_leg_test]
+      status: [done]
+      event_types: []
+    groupers:
+      groupers: [{spatial_index_name: LegTestRegions}]
+    patrol_filters:
+      trajectory_segment_filter:
+        min_length_meters: 0.001
+        max_length_meters: 10000.0
+        max_time_secs: 3600.0
+        min_time_secs: 1.0
+        max_speed_kmhr: 120.0
+        min_speed_kmhr: 0.01
+      bounding_box:
+        min_x: -180.0
+        max_x: 180.0
+        min_y: -90.0
+        max_y: 90.0
+      filter_point_coords:
+      - x: 180.0
+        y: 90.0
+      - x: 0.0
+        y: 0.0
+      - x: 1.0
+        y: 1.0
+    map_options:
+      auto_scale_or_custom_cell_size:
+        auto_scale_or_custom: Customize
+        grid_cell_size: 1000
+      base_maps:
+      - url: https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}
+        opacity: 1.0
+
+sum-mode-legs:
+  name: Sum mode on the leg fixtures
+  description: >-
+    Sum of an event field as the numerator on the leg fixtures (canned details keys, as agg-column); rate and effort tooltips formatted to two decimals, the summed field raw until format_numeric_columns ships.
+  mock_io: true
+  mock_io_overrides:
+    ecoscope.platform.tasks.io.get_patrols_from_combined_params: dev/fixtures/legs/patrols.parquet
+    ecoscope.platform.tasks.io.get_patrol_observations_from_patrols_df_and_combined_params: dev/fixtures/legs/observations.parquet
+    ecoscope.platform.tasks.io.get_event_type_display_names_from_events: dev/fixtures/legs/events-display-names.parquet
+    ecoscope.platform.tasks.io.get_patrol_segments_from_patrols_df_and_combined_params: dev/fixtures/legs/legs.parquet
+    ecoscope.platform.tasks.io.add_patrol_team_names: dev/fixtures/legs/legs-team-names.parquet
+    ecoscope.platform.tasks.io.add_patrol_roster_names: dev/fixtures/legs/legs-roster-names.parquet
+    ecoscope.platform.tasks.io.add_patrol_type_display_names: dev/fixtures/legs/legs-type-display-names.parquet
+  params:
+    workflow_details:
+      name: Patrol Encounter Rate Map
+      description: Sum mode on the leg fixtures.
+    er_client_name:
+      data_source:
+        name: mep_dev
+    time_range:
+      since: '2026-01-05T00:00:00'
+      until: '2026-01-07T00:00:00'
+      timezone:
+        label: UTC (UTC+00:00)
+        tzCode: UTC
+        name: (UTC+00:00) UTC
+        utc: '+00:00'
+    er_patrol_and_events_params:
+      patrol_types: [ecoscope_leg_test]
+      status: [done]
+      event_types: []
+    groupers:
+      groupers: []
+    patrol_filters:
+      trajectory_segment_filter:
+        min_length_meters: 0.001
+        max_length_meters: 10000.0
+        max_time_secs: 3600.0
+        min_time_secs: 1.0
+        max_speed_kmhr: 120.0
+        min_speed_kmhr: 0.01
+      bounding_box:
+        min_x: -180.0
+        max_x: 180.0
+        min_y: -90.0
+        max_y: 90.0
+      filter_point_coords:
+      - x: 180.0
+        y: 90.0
+      - x: 0.0
+        y: 0.0
+      - x: 1.0
+        y: 1.0
+    map_options:
+      aggregation:
+        count_or_sum: Sum of Column
+        column: How many elephants are in the group?
+      auto_scale_or_custom_cell_size:
+        auto_scale_or_custom: Customize
+        grid_cell_size: 1000
+      base_maps:
+      - url: https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}
+        opacity: 1.0
+
+zero-events-legs:
+  name: Zero events on the leg fixtures
+  description: >-
+    An event type with no events at all: the events branch skips end to end and the run completes without a task error; the
+    Team view is present but its map renders without data (pre-existing behaviour: only groups that lose their events to a
+    grouper, not a run with no events, get the all-zero grid).
+  mock_io: true
+  mock_io_overrides:
+    ecoscope.platform.tasks.io.get_patrols_from_combined_params: dev/fixtures/legs/patrols.parquet
+    ecoscope.platform.tasks.io.get_patrol_observations_from_patrols_df_and_combined_params: dev/fixtures/legs/observations.parquet
+    ecoscope.platform.tasks.io.get_event_type_display_names_from_events: dev/fixtures/legs/events-display-names.parquet
+    ecoscope.platform.tasks.io.get_patrol_segments_from_patrols_df_and_combined_params: dev/fixtures/legs/legs.parquet
+    ecoscope.platform.tasks.io.add_patrol_team_names: dev/fixtures/legs/legs-team-names.parquet
+    ecoscope.platform.tasks.io.add_patrol_roster_names: dev/fixtures/legs/legs-roster-names.parquet
+    ecoscope.platform.tasks.io.add_patrol_type_display_names: dev/fixtures/legs/legs-type-display-names.parquet
+  params:
+    workflow_details:
+      name: Patrol Encounter Rate Map
+      description: Zero events on the leg fixtures.
+    er_client_name:
+      data_source:
+        name: mep_dev
+    time_range:
+      since: '2026-01-05T00:00:00'
+      until: '2026-01-07T00:00:00'
+      timezone:
+        label: UTC (UTC+00:00)
+        tzCode: UTC
+        name: (UTC+00:00) UTC
+        utc: '+00:00'
+    er_patrol_and_events_params:
+      patrol_types: [ecoscope_leg_test]
+      status: [done]
+      event_types: [no_such_event_type]
+    groupers:
+      groupers: [{index_name: patrol_team_name}]
+    patrol_filters:
+      trajectory_segment_filter:
+        min_length_meters: 0.001
+        max_length_meters: 10000.0
+        max_time_secs: 3600.0
+        min_time_secs: 1.0
+        max_speed_kmhr: 120.0
+        min_speed_kmhr: 0.01
+      bounding_box:
+        min_x: -180.0
+        max_x: 180.0
+        min_y: -90.0
+        max_y: 90.0
+      filter_point_coords:
+      - x: 180.0
+        y: 90.0
+      - x: 0.0
+        y: 0.0
+      - x: 1.0
+        y: 1.0
+    map_options:
+      auto_scale_or_custom_cell_size:
+        auto_scale_or_custom: Customize
+        grid_cell_size: 1000
+      base_maps:
+      - url: https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}
+        opacity: 1.0
+
+empty:
+  name: Empty fixtures
+  description: >-
+    Zero-row patrols, observations, events and leg frames complete without a task error.
+  mock_io: true
+  mock_io_overrides:
+    ecoscope.platform.tasks.io.get_patrols_from_combined_params: dev/fixtures/empty/patrols.parquet
+    ecoscope.platform.tasks.io.get_patrol_observations_from_patrols_df_and_combined_params: dev/fixtures/empty/observations.parquet
+    ecoscope.platform.tasks.io.get_event_type_display_names_from_events: dev/fixtures/empty/events-display-names.parquet
+    ecoscope.platform.tasks.io.get_patrol_segments_from_patrols_df_and_combined_params: dev/fixtures/empty/legs.parquet
+    ecoscope.platform.tasks.io.add_patrol_team_names: dev/fixtures/empty/legs-team-names.parquet
+    ecoscope.platform.tasks.io.add_patrol_roster_names: dev/fixtures/empty/legs-roster-names.parquet
+    ecoscope.platform.tasks.io.add_patrol_type_display_names: dev/fixtures/empty/legs-type-display-names.parquet
+  params:
+    workflow_details:
+      name: Patrol Encounter Rate Map
+      description: Empty fixtures.
+    er_client_name:
+      data_source:
+        name: mep_dev
+    time_range:
+      since: '2026-01-05T00:00:00'
+      until: '2026-01-07T00:00:00'
+      timezone:
+        label: UTC (UTC+00:00)
+        tzCode: UTC
+        name: (UTC+00:00) UTC
+        utc: '+00:00'
+    er_patrol_and_events_params:
+      patrol_types: [ecoscope_leg_test]
+      status: [done]
+      event_types: []
+    groupers:
+      groupers: []
+    patrol_filters:
+      trajectory_segment_filter:
+        min_length_meters: 0.001
+        max_length_meters: 10000.0
+        max_time_secs: 3600.0
+        min_time_secs: 1.0
+        max_speed_kmhr: 120.0
+        min_speed_kmhr: 0.01
+      bounding_box:
+        min_x: -180.0
+        max_x: 180.0
+        min_y: -90.0
+        max_y: 90.0
+      filter_point_coords:
+      - x: 180.0
+        y: 90.0
+      - x: 0.0
+        y: 0.0
+      - x: 1.0
+        y: 1.0
+    map_options:
+      auto_scale_or_custom_cell_size:
+        auto_scale_or_custom: Customize
+        grid_cell_size: 1000
+      base_maps:
+      - url: https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}
+        opacity: 1.0
+
+flag-off:
+  name: Flag off (packaged 2015 fixtures, Member grouper)
+  description: >-
+    Packaged 2015 fixtures with the flag-off leg frames (no team / member / asset keys): a Member grouper yields one "None" view whose grid equals the before snapshot.
+  mock_io: true
+  mock_io_overrides:
+    ecoscope.platform.tasks.io.get_patrol_segments_from_patrols_df_and_combined_params: dev/fixtures/flag-off/legs.parquet
+    ecoscope.platform.tasks.io.add_patrol_team_names: dev/fixtures/flag-off/legs-team-names.parquet
+    ecoscope.platform.tasks.io.add_patrol_roster_names: dev/fixtures/flag-off/legs-roster-names.parquet
+    ecoscope.platform.tasks.io.add_patrol_type_display_names: dev/fixtures/flag-off/legs-type-display-names.parquet
+  params:
+    workflow_details:
+      name: Patrol Encounter Rate Map
+      description: Flag off (packaged 2015 fixtures, Member grouper).
+    er_client_name:
+      data_source:
+        name: mep_dev
+    time_range:
+      since: '2015-01-10T00:00:00'
+      until: '2015-02-28T23:59:59'
+      timezone:
+        label: UTC (UTC+00:00)
+        tzCode: UTC
+        name: (UTC+00:00) UTC
+        utc: '+00:00'
+    er_patrol_and_events_params:
+      patrol_types: [ecoscope_patrol]
+      status: [done]
+      event_types: []
+    groupers:
+      groupers: [{index_name: patrol_member_names}]
+    patrol_filters:
+      trajectory_segment_filter:
+        min_length_meters: 0.001
+        max_length_meters: 10000.0
+        max_time_secs: 3600.0
+        min_time_secs: 1.0
+        max_speed_kmhr: 120.0
+        min_speed_kmhr: 0.01
+      bounding_box:
+        min_x: -180.0
+        max_x: 180.0
+        min_y: -90.0
+        max_y: 90.0
+      filter_point_coords:
+      - x: 180.0
+        y: 90.0
+      - x: 0.0
+        y: 0.0
+      - x: 1.0
+        y: 1.0
+    map_options:
+      auto_scale_or_custom_cell_size:
+        auto_scale_or_custom: Customize
+        grid_cell_size: 5000
+      base_maps:
+      - url: https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}
+        opacity: 1.0
+
+mep-dev-legs:
+  name: MEP Dev (patrol legs, Team grouper)
+  description: >-
+    Live EarthRanger (mep-dev): the seeded ecoscope_leg_test patrols of 5-6 Jan 2026 (3 legs, no events) grouped by Team:
+    one view "Ecoscope Leg Test Team" (team name resolved live), whose map renders without data because the site holds no
+    events on those legs (the events branch skips end to end, as in zero-events-legs). Run with the mep-dev connection
+    env vars; verified 2026-10-29.
+  mock_io: false
+  params:
+    workflow_details:
+      name: Patrol Encounter Rate Map
+      description: MEP Dev (patrol legs, Team grouper).
+    er_client_name:
+      data_source:
+        name: mep_dev
+    time_range:
+      since: '2026-01-05T00:00:00'
+      until: '2026-01-07T00:00:00'
+      timezone:
+        label: UTC (UTC+00:00)
+        tzCode: UTC
+        name: (UTC+00:00) UTC
+        utc: '+00:00'
+    er_patrol_and_events_params:
+      patrol_types: [ecoscope_leg_test]
+      status: [done]
+      event_types: []
+    groupers:
+      groupers: [{index_name: patrol_team_name}]
+    patrol_filters:
+      trajectory_segment_filter:
+        min_length_meters: 0.001
+        max_length_meters: 10000.0
+        max_time_secs: 3600.0
+        min_time_secs: 1.0
+        max_speed_kmhr: 120.0
+        min_speed_kmhr: 0.01
+      bounding_box:
+        min_x: -180.0
+        max_x: 180.0
+        min_y: -90.0
+        max_y: 90.0
+      filter_point_coords:
+      - x: 180.0
+        y: 90.0
+      - x: 0.0
+        y: 0.0
+      - x: 1.0
+        y: 1.0
+    map_options:
+      auto_scale_or_custom_cell_size:
+        auto_scale_or_custom: Customize
+        grid_cell_size: 1000
+      base_maps:
+      - url: https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}
+        opacity: 1.0
