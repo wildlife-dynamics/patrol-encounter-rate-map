@@ -36,6 +36,7 @@ Before using this workflow, you need:
    - Patrol types can be found at `https://<your-site>.pamdas.org/admin/activity/patroltype/`
    - Event types can be found at `https://<your-site>.pamdas.org/admin/activity/eventtype/`
    - You'll need to know the exact "value" (not display name) of any patrol type or event type you want to filter by — for example `"ecoscope_patrol"` or `"wildlife_sighting_rep"`
+   - To split the map by **Team**, **Member** or **Asset**, your EarthRanger site must record a team, members and assets on each patrol leg (the patrol leg schema). Sites without it still run; those groupers then show a single `None` view
 
 ---
 
@@ -95,13 +96,18 @@ Choose which patrols and events to include in the analysis.
 #### 5. Filter Data
 Optional spatial and quality filters applied to both patrol observations and events.
 
+All of these sit in the "Advanced Configurations" accordion of this section.
+
 - **Bounding Box** (optional): Only include patrol observations and events whose coordinates fall inside this box
-  - Default: the whole world (`min_x: -180, max_x: 180, min_y: -90, max_y: 90`)
+  - **Min Latitude** / **Max Latitude**: Default `-90` / `90`
+  - **Min Longitude** / **Max Longitude**: Default `-180` / `180`
 - **Filter Exact Point Coordinates** (optional): Exclude observations and events recorded at these exact coordinates (e.g., known bad GPS fixes)
   - Default: `(180, 90)`, `(0, 0)`, `(1, 1)`
-- **Trajectory Filter** (optional): Drop trajectory segments outside these length / time / speed bounds (e.g., to remove implausible jumps)
-  - Defaults: length `0.001–100000 m`, time `1–172800 s`, speed `0.01–500 km/h`
-  - Note: Tightening these bounds (e.g., `max_speed_kmhr: 120`) removes GPS artifacts that would otherwise inflate patrol effort
+- **Trajectory Filter** (optional): Drop trajectory segments outside these bounds (e.g., to remove implausible jumps)
+  - **Minimum Segment Length (Meters)** / **Maximum Segment Length (Meters)**: Default `0.001` / `100000`
+  - **Minimum Segment Duration (Seconds)** / **Maximum Segment Duration (Seconds)**: Default `1` / `172800`
+  - **Minimum Segment Speed (Kilometers per Hour)** / **Maximum Segment Speed (Kilometers per Hour)**: Default `0.01` / `500`
+  - Note: Tightening these bounds (e.g., a maximum speed of `120` km/h) removes GPS artifacts that would otherwise inflate patrol effort
 
 #### 6. Group Data
 Configure how data is grouped and split into per-group dashboard views. Leave empty to produce a single map covering all data.
@@ -109,7 +115,10 @@ Configure how data is grouped and split into per-group dashboard views. Leave em
 You can add any combination of groupers:
 
 - **Category**: Split by a data attribute
-  - Options: `Event Type`, `Patrol Type`, `Patrol Subject`
+  - Options: `Event Type`, `Patrol Type`, `Patrol Subject`, `Team`, `Member`, `Asset`
+  - `Patrol Type` views are labelled with the type's display name as shown in EarthRanger (e.g., `Ecoscope Patrol`), not its value
+  - `Team`, `Member` and `Asset` come from the team, members and assets recorded on each patrol leg (see Prerequisites). A patrol shared by several members or assets counts in each of their maps
+  - On a site without the patrol leg schema these three groupers produce one view named `None`
 - **Temporal**: Split by a time period
   - Options include `Year (example: 2024)`, `Month (example: September)`, `Year and Month (example: 2023-01)`, `Day of the week (example: Sunday)`, and more
 - **Spatial**: Split by the regions of a spatial feature group configured in your EarthRanger site
@@ -177,13 +186,13 @@ After the workflow completes successfully, the dashboard shows a single full-wid
   - Rates are classified into 10 equal-interval bins colored green (low) through yellow to red (high)
   - Cells patrolled less than the Minimum Patrol Effort Threshold render **grey** (legend: `< 200 m patrol effort` at the default threshold)
   - Cells with no patrol effort at all are omitted entirely
-  - **Interactive hover**: Each cell's tooltip shows its exact rate (e.g., `Events per km`), the event total for the cell (`Events`, or your summed field's name), and `Patrol Effort (km)`
+  - **Interactive hover**: Each cell's tooltip shows its rate (e.g., `Events per km`) and `Patrol Effort (km)` to two decimal places (e.g., `0.50`, `3.50`), and the event total for the cell (`Events` as a whole number, or your summed field's name)
   - Legend (bottom-right) titled with the rate being displayed; north arrow top-left
   - When "Sum of an Event Field" is selected, all labels update automatically — e.g., legend `Number of Animals per km`
 
 ### Grouped Outputs
 
-If you configured groupers, the dashboard gains a group selector, and each group (e.g., each month, each patrol type, or each spatial region) gets its own encounter rate map calculated from just that group's patrols and events. Groups that had patrol effort but no events still render, showing an all-zero (green) grid over the patrolled area.
+If you configured groupers, the dashboard gains a group selector, and each group (e.g., each month, each patrol type, each team, or each spatial region) gets its own encounter rate map calculated from just that group's patrols and events. Patrol type groups are listed by display name (e.g., `Ecoscope Patrol`); team, member and asset groups by the names recorded in EarthRanger. Groups that had patrol effort but no events still render, showing an all-zero (green) grid over the patrolled area.
 
 ---
 
@@ -234,7 +243,19 @@ Here are some typical scenarios and how to configure the workflow for each:
 
 ---
 
-### Example 4: Encounter rates by management sector
+### Example 4: Encounter rates by patrol team
+**Goal**: Compare where each team's patrols meet events
+
+**Configuration**:
+- Same as Example 1, plus:
+- **Group Data**: Category grouper set to `Team`
+
+**Result**:
+- One map per team, named after the team recorded on the patrol legs; a `Member` grouper instead gives one map per ranger, and `Asset` one per vehicle
+
+---
+
+### Example 5: Encounter rates by management sector
 **Goal**: Compare encounter rates across the regions of a spatial feature group
 
 **Configuration**:
@@ -274,6 +295,13 @@ Here are some typical scenarios and how to configure the workflow for each:
 - Use the type's **value**, not its display name — e.g., `wildlife_sighting_rep`, not "Wildlife Sighting"
 - Values are case-sensitive and must match exactly
 - Look up values in the EarthRanger admin pages listed in Prerequisites
+
+#### Team, Member or Asset view is just "None"
+**Problem**: Grouping by **Team**, **Member** or **Asset** gives a single view named `None`
+
+**Solutions**:
+- Your EarthRanger site does not record a team, members and assets on patrol legs (the patrol leg schema); ask your EarthRanger administrator whether it can be enabled
+- Patrols recorded before the schema was enabled have no team, members or assets and also land in `None`
 
 #### "Column not found" error in sum mode
 **Problem**: With "Sum of an Event Field" selected, the workflow fails saying the field/column was not found
