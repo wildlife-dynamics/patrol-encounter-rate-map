@@ -117,9 +117,33 @@ process_events_details = create_func_magicmock(  # 🧪
     anchor="ecoscope.platform.tasks.io",  # 🧪
     func_name="process_events_details",  # 🧪
 )  # 🧪
+from ecoscope.platform.tasks.analysis import (
+    calculate_encounter_rate_grid as calculate_encounter_rate_grid,
+)
+from ecoscope.platform.tasks.analysis import (
+    drop_inactive_grid_cells as drop_inactive_grid_cells,
+)
+from ecoscope.platform.tasks.analysis import (
+    mask_low_effort_cells as mask_low_effort_cells,
+)
+from ecoscope.platform.tasks.config import (
+    call_meshgrid_from_map_options as call_meshgrid_from_map_options,
+)
 from ecoscope.platform.tasks.config import concat_string_vars as concat_string_vars
 from ecoscope.platform.tasks.config import (
     default_if_string_is_empty as default_if_string_is_empty,
+)
+from ecoscope.platform.tasks.config import (
+    get_agg_column_from_map_options as get_agg_column_from_map_options,
+)
+from ecoscope.platform.tasks.config import (
+    get_base_maps_from_map_options as get_base_maps_from_map_options,
+)
+from ecoscope.platform.tasks.config import (
+    get_mask_threshold_from_map_options as get_mask_threshold_from_map_options,
+)
+from ecoscope.platform.tasks.config import (
+    set_encounter_rate_map_options as set_encounter_rate_map_options,
 )
 from ecoscope.platform.tasks.config import set_string_var as set_string_var
 from ecoscope.platform.tasks.groupby import groupbykey as groupbykey
@@ -151,39 +175,15 @@ from ecoscope.platform.tasks.transformation import (
 )
 from ecoscope.platform.tasks.transformation import fill_na as fill_na
 from ecoscope.platform.tasks.transformation import (
-    map_values_with_unit as map_values_with_unit,
+    format_numeric_columns as format_numeric_columns,
+)
+from ecoscope.platform.tasks.transformation import (
+    merge_two_dataframes as merge_two_dataframes,
 )
 from ecoscope.platform.tasks.transformation import (
     normalize_json_column as normalize_json_column,
 )
 from ecoscope.platform.tasks.transformation import sort_values as sort_values
-from ecoscope_workflows_ext_custom.tasks.config import (
-    call_meshgrid_from_map_options as call_meshgrid_from_map_options,
-)
-from ecoscope_workflows_ext_custom.tasks.config import (
-    get_agg_column_from_map_options as get_agg_column_from_map_options,
-)
-from ecoscope_workflows_ext_custom.tasks.config import (
-    get_base_maps_from_map_options as get_base_maps_from_map_options,
-)
-from ecoscope_workflows_ext_custom.tasks.config import (
-    get_mask_threshold_from_map_options as get_mask_threshold_from_map_options,
-)
-from ecoscope_workflows_ext_custom.tasks.config import (
-    set_encounter_rate_map_options as set_encounter_rate_map_options,
-)
-from ecoscope_workflows_ext_custom.tasks.spatial_ops import (
-    calculate_encounter_rate_grid as calculate_encounter_rate_grid,
-)
-from ecoscope_workflows_ext_custom.tasks.spatial_ops import (
-    drop_inactive_grid_cells as drop_inactive_grid_cells,
-)
-from ecoscope_workflows_ext_custom.tasks.spatial_ops import (
-    mask_low_effort_cells as mask_low_effort_cells,
-)
-from ecoscope_workflows_ext_custom.tasks.transformation import (
-    merge_two_dataframes as merge_two_dataframes,
-)
 
 
 def main(params: dict[str, Any], validate_params_schema: bool = True):
@@ -1566,6 +1566,28 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
         .call()
     )
 
+    format_tooltip_decimals = (
+        task(format_numeric_columns)
+        .validate()
+        .set_task_instance_id("format_tooltip_decimals")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            columns=["density", "patrol_effort_km", "event_sum"],
+            decimal_places=2,
+            raise_if_not_found=False,
+            **(params.get("format_tooltip_decimals") or {}),
+        )
+        .mapvalues(argnames=["df"], argvalues=mask_low_effort)
+    )
+
     rename_rate_col = (
         task(map_columns)
         .validate()
@@ -1592,55 +1614,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
             raise_if_not_found=False,
             **(params.get("rename_rate_col") or {}),
         )
-        .mapvalues(argnames=["df"], argvalues=mask_low_effort)
-    )
-
-    format_rate_tooltip = (
-        task(map_values_with_unit)
-        .validate()
-        .set_task_instance_id("format_rate_tooltip")
-        .handle_errors()
-        .with_tracing()
-        .skipif(
-            conditions=[
-                any_is_empty_df,
-                any_dependency_skipped,
-            ],
-            unpack_depth=1,
-        )
-        .partial(
-            input_column_name=rate_col_label,
-            output_column_name=rate_col_label,
-            original_unit=None,
-            new_unit=None,
-            decimal_places=2,
-            **(params.get("format_rate_tooltip") or {}),
-        )
-        .mapvalues(argnames=["df"], argvalues=rename_rate_col)
-    )
-
-    format_effort_tooltip = (
-        task(map_values_with_unit)
-        .validate()
-        .set_task_instance_id("format_effort_tooltip")
-        .handle_errors()
-        .with_tracing()
-        .skipif(
-            conditions=[
-                any_is_empty_df,
-                any_dependency_skipped,
-            ],
-            unpack_depth=1,
-        )
-        .partial(
-            input_column_name="Patrol Effort (km)",
-            output_column_name="Patrol Effort (km)",
-            original_unit=None,
-            new_unit=None,
-            decimal_places=2,
-            **(params.get("format_effort_tooltip") or {}),
-        )
-        .mapvalues(argnames=["df"], argvalues=format_rate_tooltip)
+        .mapvalues(argnames=["df"], argvalues=format_tooltip_decimals)
     )
 
     rate_polygon_layer = (
@@ -1671,7 +1645,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
             ],
             **(params.get("rate_polygon_layer") or {}),
         )
-        .mapvalues(argnames=["geodataframe"], argvalues=format_effort_tooltip)
+        .mapvalues(argnames=["geodataframe"], argvalues=rename_rate_col)
     )
 
     set_rate_map_title = (

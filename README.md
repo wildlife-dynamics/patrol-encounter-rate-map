@@ -186,7 +186,7 @@ After the workflow completes successfully, the dashboard shows a single full-wid
   - Rates are classified into 10 equal-interval bins colored green (low) through yellow to red (high)
   - Cells patrolled less than the Minimum Patrol Effort Threshold render **grey** (legend: `< 200 m patrol effort` at the default threshold)
   - Cells with no patrol effort at all are omitted entirely
-  - **Interactive hover**: Each cell's tooltip shows its rate (e.g., `Events per km`) and `Patrol Effort (km)` to two decimal places (e.g., `0.50`, `3.50`), and the event total for the cell (`Events` as a whole number, or your summed field's name)
+  - **Interactive hover**: Each cell's tooltip shows its rate (e.g., `Events per km`) and `Patrol Effort (km)` to two decimal places (e.g., `0.50`, `3.50`), and the event total for the cell (`Events` as a whole number, or your summed field's per-cell total, also to two decimals)
   - Legend (bottom-right) titled with the rate being displayed; north arrow top-left
   - When "Sum of an Event Field" is selected, all labels update automatically — e.g., legend `Number of Animals per km`
 
