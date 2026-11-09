@@ -733,8 +733,8 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
         )
         .partial(
             df=drop_extra_prefix_traj,
-            rename_columns={},
-            drop_columns=["id"],
+            rename_columns={"patrol_type__value": "patrol_type"},
+            drop_columns=["id", "patrol_type"],
             retain_columns=[],
             raise_if_not_found=False,
             duplicate_strategy="suffix",

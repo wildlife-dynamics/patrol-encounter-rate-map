@@ -363,13 +363,19 @@ workflow:
           prefix: "extra__"
           duplicate_strategy: "suffix"
 
+      # Tracks from the EarthRanger API carry the type UUID in patrol_type and
+      # the slug in patrol_type__value; tracks from the data warehouse carry
+      # only patrol_type__value. Drop the UUID and rename so patrol_type is the
+      # slug on both (same as patrol-effort-plot); raise_if_not_found is false
+      # because the warehouse frame has no patrol_type to drop.
       - name: Internally Process Columns
         id: customize_columns
         task: map_columns
         partial:
           df: ${{ workflow.drop_extra_prefix_traj.return }}
-          rename_columns: {}
-          drop_columns: ["id"]
+          rename_columns:
+            patrol_type__value: patrol_type
+          drop_columns: ["id", "patrol_type"]
           retain_columns: []
           raise_if_not_found: false
           duplicate_strategy: "suffix"
@@ -383,9 +389,8 @@ workflow:
           df: ${{ workflow.customize_columns.return }}
           legs: ${{ workflow.legs_type_display.return }}
 
-      # Tracks carry the type UUID in patrol_type and the slug in
-      # patrol_type__value; this writes the display name into patrol_type
-      # (replaces the former patrol_type__value -> patrol_type rename).
+      # patrol_type is the slug here (see customize_columns); this writes the
+      # display name into patrol_type and keeps the slug in patrol_type__value.
       - name: Add Patrol Type Display Names to Patrol Trajectories
         id: traj_type_display
         task: add_patrol_type_display_from_legs
