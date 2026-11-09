@@ -61,6 +61,7 @@ from wt_task.testing import create_func_magicmock
 
 OUT = Path(__file__).resolve().parent
 LEGS_DIR, OFF_DIR, EMPTY_DIR = OUT / "legs", OUT / "flag-off", OUT / "empty"
+WAREHOUSE_DIR = OUT / "warehouse"
 RNG = np.random.default_rng(20261023)
 
 
@@ -250,6 +251,22 @@ def build_observations(patrols: pd.DataFrame) -> gpd.GeoDataFrame:
     return gpd.GeoDataFrame(pd.concat(frames, ignore_index=True), crs=4326)
 
 
+# The data warehouse serves a slimmer observations frame than the EarthRanger API: the type
+# slug only (no `patrol_type`), no `patrol_segment_id`, and patrol start / end as strings.
+WAREHOUSE_OBS_COLUMNS = [
+    "geometry", "fixtime", "groupby_col", "extra__subject_id", "patrol_subject", "extra__source", "junk_status",
+    "patrol_id", "patrol_title", "patrol_serial_number", "patrol_status", "patrol_type__value", "patrol_type__display",
+    "patrol_start_time", "patrol_end_time",
+]  # fmt: skip
+
+
+def build_warehouse_observations(obs: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
+    warehouse = obs[WAREHOUSE_OBS_COLUMNS].copy()
+    for col in ("patrol_start_time", "patrol_end_time"):
+        warehouse[col] = warehouse[col].map(lambda t: t.isoformat())
+    return warehouse
+
+
 EVENT_TYPE_DISPLAY = {"wildlife_sighting_rep": "Wildlife Sighting", "poacher_camp_rep": "Poachers Camp"}
 TIME_RANGE = TimeRange(
     since=pd.Timestamp("2026-01-05T00:00:00Z"),
@@ -345,6 +362,7 @@ def main() -> None:
 
     write(patrols, LEGS_DIR / "patrols.parquet")
     write(obs, LEGS_DIR / "observations.parquet")
+    write(build_warehouse_observations(obs), WAREHOUSE_DIR / "observations.parquet")
     write(legs, LEGS_DIR / "legs.parquet")
     for stem, frame in names.items():
         write(frame, LEGS_DIR / f"{stem}.parquet")

@@ -530,6 +530,68 @@ base-legs:
       - url: https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}
         opacity: 1.0
 
+warehouse-observations:
+  name: Warehouse-shaped observations
+  description: >-
+    The leg fixtures with the observations frame in the data warehouse's shape (type slug in patrol_type__value only, no patrol_type and no patrol_segment_id): the run completes and patrol_type on the tracks is the display name "Ecoscope Leg Test".
+  mock_io: true
+  mock_io_overrides:
+    ecoscope.platform.tasks.io.get_patrols_from_combined_params: dev/fixtures/legs/patrols.parquet
+    ecoscope.platform.tasks.io.get_patrol_observations_from_patrols_df_and_combined_params: dev/fixtures/warehouse/observations.parquet
+    ecoscope.platform.tasks.io.get_event_type_display_names_from_events: dev/fixtures/legs/events-display-names.parquet
+    ecoscope.platform.tasks.io.get_patrol_segments_from_patrols_df_and_combined_params: dev/fixtures/legs/legs.parquet
+    ecoscope.platform.tasks.io.add_patrol_team_names: dev/fixtures/legs/legs-team-names.parquet
+    ecoscope.platform.tasks.io.add_patrol_roster_names: dev/fixtures/legs/legs-roster-names.parquet
+    ecoscope.platform.tasks.io.add_patrol_type_display_names: dev/fixtures/legs/legs-type-display-names.parquet
+  params:
+    workflow_details:
+      name: Patrol Encounter Rate Map
+      description: Warehouse-shaped observations.
+    er_client_name:
+      data_source:
+        name: mep_dev
+    time_range:
+      since: '2026-01-05T00:00:00'
+      until: '2026-01-07T00:00:00'
+      timezone:
+        label: UTC (UTC+00:00)
+        tzCode: UTC
+        name: (UTC+00:00) UTC
+        utc: '+00:00'
+    er_patrol_and_events_params:
+      patrol_types: [ecoscope_leg_test]
+      status: [done]
+      event_types: []
+    groupers:
+      groupers: []
+    patrol_filters:
+      trajectory_segment_filter:
+        min_length_meters: 0.001
+        max_length_meters: 10000.0
+        max_time_secs: 3600.0
+        min_time_secs: 1.0
+        max_speed_kmhr: 120.0
+        min_speed_kmhr: 0.01
+      bounding_box:
+        min_x: -180.0
+        max_x: 180.0
+        min_y: -90.0
+        max_y: 90.0
+      filter_point_coords:
+      - x: 180.0
+        y: 90.0
+      - x: 0.0
+        y: 0.0
+      - x: 1.0
+        y: 1.0
+    map_options:
+      auto_scale_or_custom_cell_size:
+        auto_scale_or_custom: Customize
+        grid_cell_size: 1000
+      base_maps:
+      - url: https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}
+        opacity: 1.0
+
 grouped-team:
   name: Team grouper
   description: >-
