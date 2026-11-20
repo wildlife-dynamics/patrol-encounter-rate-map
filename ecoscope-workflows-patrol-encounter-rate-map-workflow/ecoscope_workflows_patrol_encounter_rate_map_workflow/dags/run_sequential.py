@@ -499,7 +499,10 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
             ],
             unpack_depth=1,
         )
-        .partial(**(params.get("patrol_filters") or {}))
+        .partial(
+            trajectory_segment_filter_overrides=[],
+            **(params.get("patrol_filters") or {}),
+        )
         .call()
     )
 
@@ -691,6 +694,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
         .partial(
             relocations=filter_patrol_obs,
             trajectory_segment_filter=segment_filter,
+            trajectory_segment_filter_overrides=[],
             **(params.get("patrol_traj") or {}),
         )
         .call()

@@ -39,8 +39,10 @@ requirements:
   # drop_inactive_grid_cells and mask_low_effort_cells, so ext-custom is no
   # longer required (its last release, 0.1.5, pins wt-task <0.2 and cannot
   # co-install with platform >=2.30). Carries the patrol leg tasks (>=2.27.1).
+  # >=2.39.0: process_events_details handles dict-valued choice fields, and
+  # warehouse patrol events' event_details arrive decoded (ecoscope PR #913).
   - name: "ecoscope-platform"
-    version: ">=2.30.2, <2.31.0"
+    version: ">=2.39.0, <2.40.0"
     channel: "https://repo.prefix.dev/ecoscope-workflows/"
   # ecoscope-platform >=2.11.18 requires pydeck ==0.9.2; pin it to conda-forge
   # explicitly (same pattern as wt-download-patrols).
@@ -264,6 +266,9 @@ workflow:
       - name: Filters
         id: patrol_filters
         task: ecoscope.platform.tasks.config.set_traj_filters
+        partial:
+          # No per-patrol-type filters here; [] keeps the 2.39 overrides field off the form.
+          trajectory_segment_filter_overrides: []
 
   # Split the combined filter config into the pieces each consumer needs.
   - name: Split Bounding Box
@@ -354,6 +359,7 @@ workflow:
         partial:
           relocations: ${{ workflow.filter_patrol_obs.return }}
           trajectory_segment_filter: ${{ workflow.segment_filter.return }}
+          trajectory_segment_filter_overrides: []
 
       - name: Remove Column Prefix (Trajectories)
         id: drop_extra_prefix_traj
