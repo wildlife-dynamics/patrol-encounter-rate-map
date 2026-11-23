@@ -16,7 +16,7 @@ platforms = [
 ]
 
 [dependencies.ecoscope-platform]
-version = ">=2.39.0,<2.40.0"
+version = ">=2.39.1,<2.40.0"
 channel = "https://repo.prefix.dev/ecoscope-workflows/"
 
 [dependencies.pydeck]
