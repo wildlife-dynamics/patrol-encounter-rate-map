@@ -202,6 +202,23 @@
           "description": "Drop trajectory segments outside these length/time/speed bounds.",
           "ecoscope:advanced": true,
           "title": "Trajectory Filter"
+        },
+        "trajectory_segment_filter_overrides": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/TrajectorySegmentFilterOverride"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Use a different segment filter for specific values, e.g. a subject subtype or patrol type. Values without an override use the filter above. Leave empty unless the workflow supports per-type filtering.",
+          "ecoscope:advanced": true,
+          "title": "Filter Overrides"
         }
       },
       "type": "object",
@@ -642,6 +659,24 @@
       "title": "TrajectorySegmentFilter",
       "type": "object"
     },
+    "TrajectorySegmentFilterOverride": {
+      "properties": {
+        "key": {
+          "title": "Value",
+          "type": "string"
+        },
+        "filter": {
+          "$ref": "#/$defs/TrajectorySegmentFilter",
+          "title": "Filter"
+        }
+      },
+      "required": [
+        "key",
+        "filter"
+      ],
+      "title": "TrajectorySegmentFilterOverride",
+      "type": "object"
+    },
     "SpatialGrouper": {
       "properties": {
         "spatial_index_name": {
@@ -778,7 +813,8 @@
       "ui:order": [
         "bounding_box",
         "filter_point_coords",
-        "trajectory_segment_filter"
+        "trajectory_segment_filter",
+        "trajectory_segment_filter_overrides"
       ]
     },
     "map_options": {

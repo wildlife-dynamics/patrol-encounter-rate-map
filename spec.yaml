@@ -43,7 +43,7 @@ requirements:
   # warehouse patrol events' event_details arrive decoded (ecoscope PR #913).
   # >=2.39.1: a missing event-type choice list is fetched once, not retried (ecoscope PR #919).
   - name: "ecoscope-platform"
-    version: ">=2.39.1, <2.40.0"
+    version: ">=2.39.4, <2.40.0"
     channel: "https://repo.prefix.dev/ecoscope-workflows/"
   # ecoscope-platform >=2.11.18 requires pydeck ==0.9.2; pin it to conda-forge
   # explicitly (same pattern as wt-download-patrols).
@@ -53,6 +53,14 @@ requirements:
 
 rjsf-overrides:
   properties:
+    Filter Data.properties.patrol_filters.properties.trajectory_segment_filter.ecoscope:transform:
+      - transformer: TrajectoryFilterPresetResolver
+        transformer_kws: {}
+    Filter Data.properties.patrol_filters.properties.trajectory_segment_filter_overrides.ecoscope:transform:
+      - transformer: TrajectoryFilterOverrideSuggester
+        transformer_kws:
+          kind: patrol_type
+          depends_on: properties.Patrol and Event Types.properties.er_patrol_and_events_params.properties.patrol_types
     Patrol and Event Types.properties.er_patrol_and_events_params.properties.patrol_types.description: >-
       Specify the patrol type(s) to analyze. Enter the "Patrol Types" value for each patrol type — one per field (e.g. "ecoscope_patrol"). Leave empty to include all patrol types.
     Patrol and Event Types.properties.er_patrol_and_events_params.properties.patrol_types.default: []
@@ -89,6 +97,9 @@ rjsf-overrides:
     # make_aggregation_json_schema_extra factory).
     Encounter Rate Map.properties.map_options.title: ""
   $defs:
+    TrajectorySegmentFilterOverride.properties.filter.ecoscope:transform:
+      - transformer: TrajectoryFilterPresetResolver
+        transformer_kws: {}
     ValueGrouper:
       title: "Category"
       type: "object"
@@ -267,9 +278,6 @@ workflow:
       - name: Filters
         id: patrol_filters
         task: ecoscope.platform.tasks.config.set_traj_filters
-        partial:
-          # No per-patrol-type filters here; [] keeps the 2.39 overrides field off the form.
-          trajectory_segment_filter_overrides: []
 
   # Split the combined filter config into the pieces each consumer needs.
   - name: Split Bounding Box
@@ -287,6 +295,12 @@ workflow:
   - name: Split Segment Filter
     id: segment_filter
     task: ecoscope.platform.tasks.config.get_segment_filter
+    partial:
+      filters: ${{ workflow.patrol_filters.return }}
+
+  - name: Split Segment Filter Overrides
+    id: segment_filter_overrides
+    task: ecoscope.platform.tasks.config.get_segment_filter_overrides
     partial:
       filters: ${{ workflow.patrol_filters.return }}
 
@@ -360,7 +374,8 @@ workflow:
         partial:
           relocations: ${{ workflow.filter_patrol_obs.return }}
           trajectory_segment_filter: ${{ workflow.segment_filter.return }}
-          trajectory_segment_filter_overrides: []
+          trajectory_segment_filter_overrides: ${{ workflow.segment_filter_overrides.return }}
+          trajectory_segment_filter_override_column: patrol_type__value
 
       - name: Remove Column Prefix (Trajectories)
         id: drop_extra_prefix_traj
