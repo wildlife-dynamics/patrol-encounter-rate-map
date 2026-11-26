@@ -510,6 +510,15 @@ base-legs:
         min_time_secs: 1.0
         max_speed_kmhr: 120.0
         min_speed_kmhr: 0.01
+      trajectory_segment_filter_overrides:
+      - key: ecoscope_leg_test
+        filter:
+          min_length_meters: 0.001
+          max_length_meters: 10000.0
+          max_time_secs: 3600.0
+          min_time_secs: 1.0
+          max_speed_kmhr: 120.0
+          min_speed_kmhr: 0.01
       bounding_box:
         min_x: -180.0
         max_x: 180.0
@@ -572,6 +581,15 @@ warehouse-observations:
         min_time_secs: 1.0
         max_speed_kmhr: 120.0
         min_speed_kmhr: 0.01
+      trajectory_segment_filter_overrides:
+      - key: ecoscope_leg_test
+        filter:
+          min_length_meters: 0.001
+          max_length_meters: 10000.0
+          max_time_secs: 3600.0
+          min_time_secs: 1.0
+          max_speed_kmhr: 120.0
+          min_speed_kmhr: 0.01
       bounding_box:
         min_x: -180.0
         max_x: 180.0
