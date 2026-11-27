@@ -61,8 +61,13 @@ rjsf-overrides:
         transformer_kws:
           kind: patrol_type
           depends_on: properties.Patrol and Event Types.properties.er_patrol_and_events_params.properties.patrol_types
+    Patrol and Event Types.properties.er_patrol_and_events_params.properties.patrol_types.ecoscope:transform:
+      - transformer: EarthRangerEnumResolver
+        transformer_kws:
+          type: patrol_type
+          depends_on: properties.er_client_name.properties.data_source.properties.name
     Patrol and Event Types.properties.er_patrol_and_events_params.properties.patrol_types.description: >-
-      Specify the patrol type(s) to analyze. Enter the "Patrol Types" value for each patrol type — one per field (e.g. "ecoscope_patrol"). Leave empty to include all patrol types.
+      Specify the patrol type(s) to analyze. Leave empty to include all patrol types.
     Patrol and Event Types.properties.er_patrol_and_events_params.properties.patrol_types.default: []
     Patrol and Event Types.properties.er_patrol_and_events_params.properties.event_types.description: >-
       Specify the event type(s) to include. Enter the "Event Types" value for each event type — one per field (e.g. "wildlife_sighting_rep"). Leave empty to include all event types.
