@@ -215,7 +215,39 @@
               },
               "description": "Drop trajectory segments outside these length / time / speed bounds (e.g. to remove implausible jumps).",
               "ecoscope:advanced": true,
-              "title": "Trajectory Filter"
+              "title": "Trajectory Filter",
+              "ecoscope:transform": [
+                {
+                  "transformer": "TrajectoryFilterPresetResolver",
+                  "transformer_kws": {}
+                }
+              ]
+            },
+            "trajectory_segment_filter_overrides": {
+              "anyOf": [
+                {
+                  "items": {
+                    "$ref": "#/$defs/TrajectorySegmentFilterOverride"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Use a different segment filter for specific values, e.g. a subject subtype or patrol type. Values without an override use the filter above. Leave empty unless the workflow supports per-type filtering.",
+              "ecoscope:advanced": true,
+              "title": "Filter Overrides",
+              "ecoscope:transform": [
+                {
+                  "transformer": "TrajectoryFilterOverrideSuggester",
+                  "transformer_kws": {
+                    "kind": "patrol_type",
+                    "depends_on": "properties.Patrol and Event Types.properties.er_patrol_and_events_params.properties.patrol_types"
+                  }
+                }
+              ]
             }
           },
           "type": "object",
@@ -681,6 +713,30 @@
       "title": "TrajectorySegmentFilter",
       "type": "object"
     },
+    "TrajectorySegmentFilterOverride": {
+      "properties": {
+        "key": {
+          "title": "Value",
+          "type": "string"
+        },
+        "filter": {
+          "$ref": "#/$defs/TrajectorySegmentFilter",
+          "title": "Filter",
+          "ecoscope:transform": [
+            {
+              "transformer": "TrajectoryFilterPresetResolver",
+              "transformer_kws": {}
+            }
+          ]
+        }
+      },
+      "required": [
+        "key",
+        "filter"
+      ],
+      "title": "TrajectorySegmentFilterOverride",
+      "type": "object"
+    },
     "SpatialGrouper": {
       "properties": {
         "spatial_index_name": {
@@ -843,7 +899,8 @@
         "ui:order": [
           "bounding_box",
           "filter_point_coords",
-          "trajectory_segment_filter"
+          "trajectory_segment_filter",
+          "trajectory_segment_filter_overrides"
         ],
         "filter_point_coords": {
           "items": {
