@@ -73,12 +73,21 @@
           "additionalProperties": false,
           "properties": {
             "patrol_types": {
-              "description": "Specify the patrol type(s) to analyze. Enter the \"Patrol Types\" value for each patrol type \u2014 one per field (e.g. \"ecoscope_patrol\"). Leave empty to include all patrol types.",
+              "description": "Specify the patrol type(s) to analyze. Leave empty to include all patrol types.",
               "items": {
                 "type": "string"
               },
               "title": "Patrol Types",
               "type": "array",
+              "ecoscope:transform": [
+                {
+                  "transformer": "EarthRangerEnumResolver",
+                  "transformer_kws": {
+                    "type": "patrol_type",
+                    "depends_on": "properties.er_client_name.properties.data_source.properties.name"
+                  }
+                }
+              ],
               "default": []
             },
             "event_types": {
